@@ -1,0 +1,109 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class PlayerController : ControllerBehaviour {
+    private Rigidbody rigid;
+    private List<Cell> waypoints;
+    private Cell waypoint;
+    private Vector3 realWaypoint;
+
+    private float speed = 0.1f;
+    private Vector3 direction;
+
+    private Animator animator;
+
+	protected override void OnAwake(params object[] args) {
+		SetDefaultState (State.Default);
+	}
+
+	protected override void OnStart(params object[] args) {
+	    rigid = GetComponent<Rigidbody>();
+	    animator = GetComponent<Animator>();
+	}
+
+    void OnNewPath(List<Cell> _waypoints) {
+        waypoints = _waypoints;
+        NextPoint();
+    }
+
+    void NextPoint() {
+        if (waypoints.Count > 0) {
+            waypoint = waypoints[0];
+            waypoints.RemoveAt(0);
+
+            realWaypoint = waypoint.realPosition;
+            realWaypoint.y = transform.position.y;
+            //transform.LookAt(waypoint.realPosition);
+
+            //Debug.Log(transform.position);
+            //Debug.Log(realWaypoint);
+
+
+            direction = (realWaypoint - transform.position).normalized * speed;
+            transform.LookAt(realWaypoint);
+
+            //transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+            //transform.TransformDirection(direction.x, 0, direction.z);
+            animator.SetBool("Run", true);
+        } else {
+            animator.SetBool("Run", false);
+            waypoint = null;
+        }
+    }
+
+    private void OnDrawGizmos() {
+        if (waypoint != null) {
+            Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.2f);
+        }
+    }
+
+    private void FixedUpdate() {
+        if (waypoint != null) {
+            if (Vector3.Distance(transform.position, realWaypoint) < speed) {
+                transform.position = realWaypoint;
+                NextPoint();
+            } else {
+                rigid.MovePosition(transform.position+direction);
+            }
+        }
+    }
+
+
+    void Update() {
+        if (Input.GetMouseButtonDown(0)) {
+            //gc.map.BlowCell(gc.GetCellFromCamera(Input.mousePosition), 3);
+            //gc.GetCellFromCamera(Input.mousePosition)
+            var startCell = gc.map.GetCellFromReal(transform.position);
+            var finishCell = gc.GetCellFromCamera(Input.mousePosition);
+            gc.map.FindPath(startCell, finishCell, OnNewPath);
+            //rigid.MovePosition();
+            //gc.Get
+        }
+
+        /*
+        if (Input.GetMouseButtonDown (0)) {
+            mouseCoords = Input.mousePosition;
+            //cursorPoint = GetTablePositionFromReal (GetRealPositionFromCamera (mouseCoords));
+            cell = gc.GetCellFromCamera(mouseCoords);
+
+            if (isEndPoint) {
+                gc.map.FindPath (startCell, cell, waypoints => {
+                    foreach (var waypoint in waypoints) {
+                        Instantiate(pathPrefab,
+                            waypoint.realPosition + Vector3.down * 0.25f +
+                            Vector3.up * (waypoint.isLadder ? 0.5f : (waypoint.movable>1 ? 1f : 0f))
+                            , Quaternion.identity);
+                    }
+                });
+            } else {
+                startCell = cell;
+                GameObject[] waypoints = GameObject.FindGameObjectsWithTag ("WayPoint");
+                for (int i = 0, j = waypoints.Length; i < j; i++) {
+                    Destroy (waypoints [i]);
+                }
+            }
+            isEndPoint = !isEndPoint;
+        }
+        */
+    }
+}
