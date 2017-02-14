@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public class PlayerController : ControllerBehaviour {
-    private Rigidbody rigid;
+    private CharacterController character;
     private List<Cell> waypoints;
     private Cell waypoint;
     private Vector3 realWaypoint;
@@ -17,7 +17,7 @@ public class PlayerController : ControllerBehaviour {
 	}
 
 	protected override void OnStart(params object[] args) {
-	    rigid = GetComponent<Rigidbody>();
+	    character = GetComponent<CharacterController>();
 	    animator = GetComponent<Animator>();
 	}
 
@@ -33,17 +33,11 @@ public class PlayerController : ControllerBehaviour {
 
             realWaypoint = waypoint.realPosition;
             realWaypoint.y = transform.position.y;
-            //transform.LookAt(waypoint.realPosition);
 
-            //Debug.Log(transform.position);
-            //Debug.Log(realWaypoint);
-
-
-            direction = (realWaypoint - transform.position).normalized * speed;
-            transform.LookAt(realWaypoint);
-
-            //transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
-            //transform.TransformDirection(direction.x, 0, direction.z);
+            direction = (realWaypoint - transform.position).normalized;
+            if (direction != Vector3.zero) {
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
             animator.SetBool("Run", true);
         } else {
             animator.SetBool("Run", false);
@@ -51,19 +45,21 @@ public class PlayerController : ControllerBehaviour {
         }
     }
 
+    /*
     private void OnDrawGizmos() {
         if (waypoint != null) {
             Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.2f);
         }
     }
+    */
 
     private void FixedUpdate() {
         if (waypoint != null) {
+            realWaypoint.y = transform.position.y;
             if (Vector3.Distance(transform.position, realWaypoint) < speed) {
-                transform.position = realWaypoint;
                 NextPoint();
             } else {
-                rigid.MovePosition(transform.position+direction);
+                character.Move(transform.forward * speed);
             }
         }
     }
