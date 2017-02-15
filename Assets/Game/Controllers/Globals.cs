@@ -70,4 +70,5 @@ public static class g {
 
 	public static GameController c;
     public static Camera camera;
+    public static Map map;
 }

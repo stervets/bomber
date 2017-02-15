@@ -51,17 +51,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\BlowController.cs" />
+    <Compile Include="Assets\Game\Controllers\Actor\ActorBehaviour.cs" />
+    <Compile Include="Assets\Game\Controllers\Actor\PlayerController.cs" />
     <Compile Include="Assets\Game\Controllers\Camera\MainCameraController.cs" />
     <Compile Include="Assets\Game\Controllers\GameController\GameController.cs" />
     <Compile Include="Assets\Game\Controllers\GameController\GameControllerStateAwake.cs" />
     <Compile Include="Assets\Game\Controllers\GameController\GameControllerStateGamePlay.cs" />
     <Compile Include="Assets\Game\Controllers\Globals.cs" />
+    <Compile Include="Assets\Game\Controllers\Input\InputBehaviour.cs" />
+    <Compile Include="Assets\Game\Controllers\Input\PlayerInputController.cs" />
     <Compile Include="Assets\Game\Controllers\Map\CellController.cs" />
     <Compile Include="Assets\Game\Controllers\Map\CellControllerGround.cs" />
     <Compile Include="Assets\Game\Controllers\Map\CellControllerWall.cs" />
     <Compile Include="Assets\Game\Controllers\Map\MapController.cs" />
-    <Compile Include="Assets\Game\Controllers\Player\PlayerController.cs" />
-    <Compile Include="Assets\Game\Controllers\PlayerInput\PlayerInputController.cs" />
     <Compile Include="Assets\Game\Model\Map.cs" />
     <Compile Include="Assets\GameManager.cs" />
     <Compile Include="Assets\GameManager\GameClasses.cs" />

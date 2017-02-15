@@ -23,8 +23,8 @@ public class MapController : ControllerBehaviour {
 	}
 
 	protected override void OnStart(params object[] args) {
-		LoadFromFile ("ttt");
-		//GenerateMapAndSave(20, 10, "ttt");
+		LoadFromFile ("t2");
+		//GenerateMapAndSave(20, 10, "t2");
 	}
 
 	protected void OnMapNewCell(params object[] args) {

@@ -45,13 +45,15 @@ public class PlayerController : ControllerBehaviour {
         }
     }
 
-    /*
+
     private void OnDrawGizmos() {
+        Gizmos.color = new Color(0.4f, 1f, 0.7f, 1f);
         if (waypoint != null) {
-            Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.2f);
+            //Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.5f);
         }
+        Gizmos.DrawCube(g.map.GetRealPositionFromCellPosition(Map.GetTablePositionFromReal(transform.position)) , Vector3.one);
     }
-    */
+
 
     private void FixedUpdate() {
         if (waypoint != null) {
@@ -69,37 +71,9 @@ public class PlayerController : ControllerBehaviour {
         if (Input.GetMouseButtonDown(0)) {
             //gc.map.BlowCell(gc.GetCellFromCamera(Input.mousePosition), 3);
             //gc.GetCellFromCamera(Input.mousePosition)
-            var startCell = gc.map.GetCellFromReal(transform.position);
+            var startCell = g.map.GetCellFromReal(transform.position);
             var finishCell = gc.GetCellFromCamera(Input.mousePosition);
-            gc.map.FindPath(startCell, finishCell, OnNewPath);
-            //rigid.MovePosition();
-            //gc.Get
+            g.map.FindPath(startCell, finishCell, OnNewPath);
         }
-
-        /*
-        if (Input.GetMouseButtonDown (0)) {
-            mouseCoords = Input.mousePosition;
-            //cursorPoint = GetTablePositionFromReal (GetRealPositionFromCamera (mouseCoords));
-            cell = gc.GetCellFromCamera(mouseCoords);
-
-            if (isEndPoint) {
-                gc.map.FindPath (startCell, cell, waypoints => {
-                    foreach (var waypoint in waypoints) {
-                        Instantiate(pathPrefab,
-                            waypoint.realPosition + Vector3.down * 0.25f +
-                            Vector3.up * (waypoint.isLadder ? 0.5f : (waypoint.movable>1 ? 1f : 0f))
-                            , Quaternion.identity);
-                    }
-                });
-            } else {
-                startCell = cell;
-                GameObject[] waypoints = GameObject.FindGameObjectsWithTag ("WayPoint");
-                for (int i = 0, j = waypoints.Length; i < j; i++) {
-                    Destroy (waypoints [i]);
-                }
-            }
-            isEndPoint = !isEndPoint;
-        }
-        */
     }
 }
