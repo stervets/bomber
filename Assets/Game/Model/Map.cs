@@ -313,7 +313,7 @@ public class Map {
         //return Math.Abs(finishX-startX)+Math.Abs(finishY-startY);
     }
 
-    private Cell GetCell(int x, int y) {
+    public Cell GetCell(int x, int y) {
         if (x >= 0 && x < countX && y >= 0 && y < countY) {
             return cell[x, y];
         }
@@ -387,6 +387,14 @@ public class Map {
         if (currentCell == null) return false;
 
         var nextCell = GetCell(nextX, nextY);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+    }
+
+    public bool isCellOffsetAvailToMove(int currentX, int currentY, int offsetX, int offsetY) {
+        var currentCell = GetCell(currentX, currentY);
+        if (currentCell == null) return false;
+
+        var nextCell = GetCell(currentCell.x+offsetX, currentCell.y+offsetY);
         return nextCell != null && isCellAvailToMove(currentCell, nextCell);
     }
 

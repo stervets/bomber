@@ -51,7 +51,7 @@ public class PlayerController : ControllerBehaviour {
         if (waypoint != null) {
             //Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.5f);
         }
-        Gizmos.DrawCube(g.map.GetRealPositionFromCellPosition(Map.GetTablePositionFromReal(transform.position)) , Vector3.one);
+        //Gizmos.DrawCube(g.map.GetRealPositionFromCellPosition(Map.GetTablePositionFromReal(transform.position)) , Vector3.one);
     }
 
 

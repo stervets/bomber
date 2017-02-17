@@ -8,6 +8,7 @@ public class GameController : ControllerBehaviour {
     //[HideInInspector] public Map map;
 
     protected override void Awake() {
+        Time.fixedDeltaTime = g.FixedUpdateFrameRate;
         SetDefaultState(State.Awake);
         g.c = this;
         base.Awake();
