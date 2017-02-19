@@ -197,7 +197,8 @@ public class Map {
             _cell[mapCell.x, mapCell.y] = mapCell;
             radio.Trigger(Channel.Map.NewCell, mapCell);
         }
-        radio.Trigger(Channel.Map.Loaded);
+        //radio.Trigger(Channel.Map.Loaded);
+        g.c.Trigger(Channel.Map.Loaded);
     }
 
     public void saveToFile(string filename) {
