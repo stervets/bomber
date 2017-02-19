@@ -61,13 +61,22 @@ public static class Channel {
 		BlowCell,
 		MakeBlowCell
 	}
+
+    public enum Actor {
+        StartMove,
+        FinishMove,
+        Fire,
+        ChangeLocation
+    }
 }
 	
 public static class g {
+    public static readonly float FixedUpdateFrameRate = 1f / 30f; // default value == 0.02f
 
 	public static readonly string MapPath = "Assets/Maps/";
 	public static readonly int NextBlowDelay = 5; // Задержка перед взрывом следующей клетки
 
 	public static GameController c;
     public static Camera camera;
+    public static Map map;
 }

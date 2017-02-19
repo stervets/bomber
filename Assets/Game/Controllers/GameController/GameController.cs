@@ -5,9 +5,10 @@ using System.Collections.Generic;
 public class GameController : ControllerBehaviour {
     public GameObject MapPrefab;
 
-    [HideInInspector] public Map map;
+    //[HideInInspector] public Map map;
 
     protected override void Awake() {
+        Time.fixedDeltaTime = g.FixedUpdateFrameRate;
         SetDefaultState(State.Awake);
         g.c = this;
         base.Awake();
@@ -41,18 +42,18 @@ public class GameController : ControllerBehaviour {
         if (cellPosition.x < 0) {
             cellPosition.x = 0;
         } else {
-            if (cellPosition.x >= map.countX) {
-                cellPosition.x = map.countX - 1;
+            if (cellPosition.x >= g.map.countX) {
+                cellPosition.x = g.map.countX - 1;
             }
         }
 
         if (cellPosition.y < 0) {
             cellPosition.y = 0;
         } else {
-            if (cellPosition.y >= map.countY) {
-                cellPosition.y = map.countY - 1;
+            if (cellPosition.y >= g.map.countY) {
+                cellPosition.y = g.map.countY - 1;
             }
         }
-        return map.cell[(int) cellPosition.x, (int) cellPosition.y];
+        return g.map.cell[(int) cellPosition.x, (int) cellPosition.y];
     }
 }

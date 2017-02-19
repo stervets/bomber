@@ -148,6 +148,7 @@ public abstract class ControllerBehaviour : EventBehavior {
         On(Channel.GameObject.Destroy, OnDestroyed);
         On(Channel.Controller.SetState, OnSetState);
 
+        BeforeControllerAwake();
         Trigger(Channel.GameObject.Awake);
 
         foreach(var state in GetComponents<StateBehaviour>())
@@ -180,6 +181,9 @@ public abstract class ControllerBehaviour : EventBehavior {
 
     public void DisableState(object state) {
         Trigger(Channel.State.Disable, state);
+    }
+
+    protected virtual void BeforeControllerAwake() {
     }
 
     protected virtual void OnAwake(params object[] args) {

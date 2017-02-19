@@ -32,7 +32,7 @@ public class PlayerInputController : ControllerBehaviour {
 
     void Update () {
         if (Input.GetMouseButtonDown(1)) {
-            gc.map.BlowCell(gc.GetCellFromCamera(Input.mousePosition), 3);
+            g.map.BlowCell(gc.GetCellFromCamera(Input.mousePosition), 3);
             //gc.GetCellFromCamera(Input.mousePosition)
         }
 
@@ -42,7 +42,7 @@ public class PlayerInputController : ControllerBehaviour {
 	        cell = gc.GetCellFromCamera(mouseCoords);
 
 	        if (isEndPoint) {
-	            gc.map.FindPath (startCell, cell, waypoints => {
+	            g.map.FindPath (startCell, cell, waypoints => {
 	                foreach (var waypoint in waypoints) {
 	                    Instantiate(pathPrefab,
 	                        waypoint.realPosition + Vector3.down * 0.25f +
