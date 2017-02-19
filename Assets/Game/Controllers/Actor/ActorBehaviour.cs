@@ -21,8 +21,9 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected Vector3 direction;
     protected Animator animator;
 
-    void SetCell(Cell _cell) {
-        //g.map. oldCell = cell = _cell;
+    protected void SetCell(Cell _cell) {
+        oldCell = cell = _cell;
+        transform.position = cell.realPosition;
     }
 
     protected override void BeforeControllerAwake() {
@@ -48,6 +49,13 @@ public abstract class ActorBehaviour : ControllerBehaviour {
 
     public void SetWaypoints(List<Cell> _waypoints) {
         waypoints = _waypoints;
+        if (waypoints.Count > 1) {
+            if (Vector3.SqrMagnitude(waypoints[1].realPosition-transform.position)<
+                Vector3.SqrMagnitude(waypoints[1].realPosition-waypoints[0].realPosition)
+            ) {
+                waypoints.RemoveAt(0);
+            }
+        }
         NextPoint();
         Trigger(Channel.Actor.StartMove);
     }

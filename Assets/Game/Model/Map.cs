@@ -39,8 +39,15 @@ public class Cell {
         radio.On(Channel.Map.BlowCell, OnBlowCell);
     }
 
-    void Blow(int lifeTime = 0) {
+    public void Blow(int lifeTime = 0) {
         radio.Trigger(Channel.Map.BlowCell, lifeTime);
+    }
+
+    public void BreakWall() {
+        if (movable > 1) {
+            movable--;
+            setPositions();
+        }
     }
 
     void BlowNextCell(int lifeTime, int delay, int directionX, int directionY) {

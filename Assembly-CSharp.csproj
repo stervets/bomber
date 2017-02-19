@@ -53,6 +53,7 @@
     <Compile Include="Assets\BlowController.cs" />
     <Compile Include="Assets\Game\Controllers\Actor\ActorBehaviour.cs" />
     <Compile Include="Assets\Game\Controllers\Actor\PlayerController.cs" />
+    <Compile Include="Assets\Game\Controllers\Actor\PlayerControllerOld.cs" />
     <Compile Include="Assets\Game\Controllers\Camera\MainCameraController.cs" />
     <Compile Include="Assets\Game\Controllers\GameController\GameController.cs" />
     <Compile Include="Assets\Game\Controllers\GameController\GameControllerStateAwake.cs" />
