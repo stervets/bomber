@@ -63,7 +63,10 @@ public static class Channel {
 	}
 
     public enum Actor {
-        Fire
+        StartMove,
+        FinishMove,
+        Fire,
+        ChangeLocation
     }
 }
 	

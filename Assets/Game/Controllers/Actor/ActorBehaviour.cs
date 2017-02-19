@@ -8,9 +8,10 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected InputBehaviour input;
 
     public Cell cell;
+    private Cell oldCell;
 
     public float speed;
-    private float squaredSpeed;
+    //private float squaredSpeed;
 
     protected Cell waypoint;
     protected List<Cell> waypoints;
@@ -20,24 +21,25 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected Vector3 direction;
     protected Animator animator;
 
+    void SetCell(Cell _cell) {
+        //g.map. oldCell = cell = _cell;
+    }
+
     protected override void BeforeControllerAwake() {
-        squaredSpeed = speed * speed;
+        On(Channel.Actor.StartMove, OnStartMove);
+        On(Channel.Actor.FinishMove, OnFinishMove);
+        On(Channel.Actor.Fire, OnFire);
     }
 
     private Vector3 realWaypoint;
 
-    /*
-    protected override void OnAwake(params object[] args) {
-
-    }
-    */
     public void moveToNextCell(int offsetX, int offsetY, bool checkMapObstacles = true) {
         var nextCell = g.map.GetCell(cell.x + offsetX, cell.y + offsetY);
         if ((nextCell = (nextCell==null || !(checkMapObstacles && g.map.isCellOffsetAvailToMove(cell.x, cell.y, offsetX, offsetY)) ? null : nextCell))!=null) {
             waypoints = new List<Cell> {nextCell};
         }
         NextPoint();
-        OnStartMove();
+        Trigger(Channel.Actor.StartMove);
     }
 
     public void moveToCell(Cell targetCell) {
@@ -47,7 +49,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     public void SetWaypoints(List<Cell> _waypoints) {
         waypoints = _waypoints;
         NextPoint();
-        OnStartMove();
+        Trigger(Channel.Actor.StartMove);
     }
 
     public List<Cell> getFreeCells(bool includeDiagonal = false) {
@@ -98,16 +100,22 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         } else {
             animator.SetBool("Run", false);
             waypoint = null;
-            OnFinishMove();
+            Trigger(Channel.Actor.FinishMove);
         }
     }
 
     private void FixedUpdate() {
         if (waypoint != null) {
-            if (Vector3.Dot(direction, realWaypoint - transform.position) < 0) {
+            // Здесь желательно учитывать кусочек перепройденного расстояния
+            if (Vector3.Dot(direction, realWaypoint - transform.position) <= 0) {
                 NextPoint();
             } else {
                 characterController.Move(transform.forward * speed * Time.deltaTime);
+                cell = g.map.GetCellFromReal(transform.position);
+                if (cell != oldCell) {
+                    gc.Trigger(Channel.Actor.ChangeLocation, cell, oldCell);
+                    oldCell = cell;
+                }
             }
         }
         OnFixedUpdate();
@@ -120,9 +128,12 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected virtual void OnFixedUpdate() {
     }
 
-    protected virtual void OnStartMove() {
+    protected virtual void OnStartMove(params object[] args) {
     }
 
-    protected virtual void OnFinishMove() {
+    protected virtual void OnFinishMove(params object[] args) {
+    }
+
+    protected virtual void OnFire(params object[] args) {
     }
 }

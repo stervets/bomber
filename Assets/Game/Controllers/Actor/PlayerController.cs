@@ -39,6 +39,10 @@ public class PlayerController : ControllerBehaviour {
                 transform.rotation = Quaternion.LookRotation(direction);
             }
             animator.SetBool("Run", true);
+
+
+            //Debug.Log(animator.Get);
+            //animator.SetBool("eiruwyie1", true);
         } else {
             animator.SetBool("Run", false);
             waypoint = null;
@@ -61,6 +65,8 @@ public class PlayerController : ControllerBehaviour {
             if (Vector3.Distance(transform.position, realWaypoint) < speed) {
                 NextPoint();
             } else {
+                //character.BroadcastMessage("addsad", 1,2,3);
+
                 character.Move(transform.forward * speed);
             }
         }

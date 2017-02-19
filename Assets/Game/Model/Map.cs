@@ -71,9 +71,11 @@ public class Cell {
             .Subscribe(_ => {
                 var savedBlowable = blowable;
                 radio.Trigger(Channel.Map.MakeBlowCell, blowInitializer, above, directionX, directionY);
+                /*
                 if (blowInitializer) {
                     g.c.Trigger(Channel.Map.MakeBlowCell, realPosition);
                 }
+                */
 
                 if ((savedBlowable > 1 || above) && (--lifeTime >= 0)) {
                     if (blowInitializer) {
@@ -327,7 +329,7 @@ public class Map {
         new[] {-1, 0}
     };
 
-    public Cell[] getLadderExits(Cell ladderCell) {
+    public Cell[] GetLadderExits(Cell ladderCell) {
         var exitTop = LadderExits[ladderCell.direction];
         var exitBottom = LadderExits[Mathf.Clamp(ladderCell.direction + 2, 0, 3)];
         return new[] {
@@ -365,14 +367,14 @@ public class Map {
             */
             if (currentCell.isLadder && nextCell.isLadder && currentCell.direction == nextCell.direction) return true;
             if (currentCell.isLadder) {
-                var exit = getLadderExits(currentCell);
+                var exit = GetLadderExits(currentCell);
                 if ((nextCell != exit[0] || level + 1 != nextLevel) &&
                     (nextCell != exit[1] || (level != nextLevel &&
                                              (!nextCell.isLadder || level != nextLevel + 1)))) return false;
             }
 
             if (nextCell.isLadder) {
-                var exit = getLadderExits(nextCell);
+                var exit = GetLadderExits(nextCell);
                 if ((currentCell != exit[0] || level - 1 != nextLevel) &&
                     (currentCell != exit[1] || (level != nextLevel &&
                                                 (!currentCell.isLadder || level != nextLevel - 1))))
