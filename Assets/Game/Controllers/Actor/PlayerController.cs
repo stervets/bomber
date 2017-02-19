@@ -49,13 +49,19 @@ public class PlayerController : ControllerBehaviour {
         }
     }
 
+    private Cell ffPoint;
 
     private void OnDrawGizmos() {
         Gizmos.color = new Color(0.4f, 1f, 0.7f, 1f);
         if (waypoint != null) {
             //Gizmos.DrawCube(waypoint.realPosition, Vector3.one*0.5f);
         }
+
         //Gizmos.DrawCube(g.map.GetRealPositionFromCellPosition(Map.GetTablePositionFromReal(transform.position)) , Vector3.one);
+
+        if (ffPoint != null) {
+            Gizmos.DrawCube(ffPoint.realPosition, Vector3.one);
+        }
     }
 
 
@@ -72,13 +78,15 @@ public class PlayerController : ControllerBehaviour {
         }
     }
 
-
     void Update() {
+        //Debug.Log("sd");
         if (Input.GetMouseButtonDown(0)) {
             //gc.map.BlowCell(gc.GetCellFromCamera(Input.mousePosition), 3);
             //gc.GetCellFromCamera(Input.mousePosition)
             var startCell = g.map.GetCellFromReal(transform.position);
             var finishCell = gc.GetCellFromCamera(Input.mousePosition);
+            Debug.Log(finishCell);
+            ffPoint = finishCell;
             g.map.FindPath(startCell, finishCell, OnNewPath);
         }
     }
