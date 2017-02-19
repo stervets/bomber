@@ -27,6 +27,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     }
 
     protected override void BeforeControllerAwake() {
+        characterController = GetComponent<CharacterController>();
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
         On(Channel.Actor.Fire, OnFire);
@@ -104,9 +105,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
             if (direction != Vector3.zero) {
                 transform.rotation = Quaternion.LookRotation(direction);
             }
-            animator.SetBool("Run", true);
         } else {
-            animator.SetBool("Run", false);
             waypoint = null;
             Trigger(Channel.Actor.FinishMove);
         }
