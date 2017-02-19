@@ -36,7 +36,6 @@ public class GameController : ControllerBehaviour {
                 ? hit.collider.gameObject.GetComponent<CellController>().cell
                 : hit.collider.gameObject.GetComponentInParent<CellController>().cell);
         }
-
         var rayLength = (-0.5f - Vector3.Dot(Vector3.up, ray.origin)) / Vector3.Dot(Vector3.up, ray.direction);
         var cellPosition = Map.GetTablePositionFromReal(ray.origin + ray.direction * rayLength);
         if (cellPosition.x < 0) {

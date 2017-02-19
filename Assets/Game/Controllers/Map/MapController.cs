@@ -33,6 +33,7 @@ public class MapController : ControllerBehaviour {
 	    var cellObject = Instantiate (mapPrefabs [cell.prefab], cell.realPosition,cell.realDirection);
 	    cellObject.transform.parent = transform;
 	    cellObject.GetComponent<CellController> ().BindCell(cell);
+	    cell.setPositions();
 	}
 
 	protected void OnMapLoaded(params object[] args) {

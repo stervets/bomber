@@ -3,6 +3,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using UniRx;
 
+/*
+using System;
+Type T = Type.GetType("Namespace.And.Your.TypeName");
+object Obj = Activator.CreateInstance(T);
+*/
+
 public delegate void Handler(params object[] arg);
 
 

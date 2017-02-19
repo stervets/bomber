@@ -8,8 +8,11 @@ using UniRx;
 public class Cell {
     public int x;
     public int y;
+
     public int level;
-    public int movable = 1; // 0 - not movable, 1 - movable, 2 - second floor available
+    public int realLevel;
+
+    public int movable = 1; // 0 - not movable, 1 - movable, 2+ -- floors
     public int blowable = 2; // 0 - no, 1 - blow stopper, 2 - yes
     public bool isLadder = false;
 
@@ -22,33 +25,40 @@ public class Cell {
 
     public Radio radio;
 
+    public void setPositions() {
+        realLevel = level + (movable < 2 ? 0 : movable - 1);
+        realPosition = Map.GetRealPositionFromTable(x, y, realLevel);
+        tablePosition = new Vector3(x, y, realLevel);
+    }
+
     void FinalizeInitialization() {
-        realPosition = Map.GetRealPositionFromTable(x, y, level);
-        tablePosition = new Vector3(x, y, level);
+        setPositions();
         realDirection = Map.GetRotationFromDirection(direction);
 
         radio = new Radio();
         radio.On(Channel.Map.BlowCell, OnBlowCell);
     }
 
-    void BlowNextCell(int lifeTime, int delay, int directionX, int directionY, bool above) {
-        if (x + directionX < 0 || x + directionX >= g.map.countX ||
-            y + directionY < 0 || y + directionY >= g.map.countY) {
-            return;
+    public void Blow(int lifeTime = 0) {
+        radio.Trigger(Channel.Map.BlowCell, lifeTime);
+    }
+
+    public void BreakWall() {
+        if (movable > 1) {
+            movable--;
+            setPositions();
         }
+    }
 
-        int cellLevel = above ? level + 1 : level;
-        Cell nextCell = g.map.cell[x + directionX, y + directionY];
-
-        if (nextCell.blowable > 0 && (nextCell.level == cellLevel ||
-                                      (nextCell.movable > 1 && nextCell.level == cellLevel - 1))) {
-            nextCell.radio.Trigger(Channel.Map.BlowCell,
-                lifeTime, delay + g.NextBlowDelay, directionX, directionY, nextCell.level != cellLevel);
+    void BlowNextCell(int lifeTime, int delay, int directionX, int directionY) {
+        if (g.map.isCellOffsetAvailToMove(this, directionX, directionY)) {
+            g.map.cell[x + directionX, y + directionY].radio.Trigger(Channel.Map.BlowCell,
+                lifeTime, delay + g.NextBlowDelay, directionX, directionY);
         }
     }
 
     void OnBlowCell(params object[] args) {
-        // [0] strength
+        // [0] lifeTime
         // [1] delay
         // [2] int directionX
         // [3] int directionY
@@ -60,8 +70,6 @@ public class Cell {
         var directionY = length > 3 ? (int) args[3] : 0;
         var blowInitializer = directionX + directionY == 0;
 
-        var above = (length > 4 && (bool) args[4]) || (blowInitializer && movable == 2);
-
         if (blowable <= 0 || (blowInitializer && movable <= 0)) {
             return;
         }
@@ -70,22 +78,24 @@ public class Cell {
         Observable.Timer(TimeSpan.FromMilliseconds(delay))
             .Subscribe(_ => {
                 var savedBlowable = blowable;
-                radio.Trigger(Channel.Map.MakeBlowCell, blowInitializer, above, directionX, directionY);
+                radio.Trigger(Channel.Map.MakeBlowCell, blowInitializer, directionX, directionY);
                 /*
                 if (blowInitializer) {
                     g.c.Trigger(Channel.Map.MakeBlowCell, realPosition);
                 }
                 */
+                if (blowable != savedBlowable) {
+                    setPositions();
+                }
 
-                if ((savedBlowable > 1 || above) && (--lifeTime >= 0)) {
-                    if (blowInitializer) {
-                        BlowNextCell(lifeTime, delay, 0, -1, above);
-                        BlowNextCell(lifeTime, delay, 1, 0, above);
-                        BlowNextCell(lifeTime, delay, 0, 1, above);
-                        BlowNextCell(lifeTime, delay, -1, 0, above);
-                    } else {
-                        BlowNextCell(lifeTime, delay, directionX, directionY, above);
-                    }
+                if (savedBlowable <= 1 || --lifeTime < 0) return;
+                if (blowInitializer) {
+                    BlowNextCell(lifeTime, delay, 0, -1);
+                    BlowNextCell(lifeTime, delay, 1, 0);
+                    BlowNextCell(lifeTime, delay, 0, 1);
+                    BlowNextCell(lifeTime, delay, -1, 0);
+                } else {
+                    BlowNextCell(lifeTime, delay, directionX, directionY);
                 }
             });
     }
@@ -111,14 +121,14 @@ public class Cell {
         return string.Join(",", new string[] {
             x.ToString(),
             y.ToString(),
-            level.ToString(),
+            realLevel.ToString(),
             direction.ToString(),
             prefab.ToString()
         });
     }
 
     public override string ToString() {
-        return string.Format("[Cell: x={0}, y={1}, level={2}, prefab={3}]", x, y, level, prefab);
+        return string.Format("[Cell: x={0}, y={1}, realLevel={2}, prefab={3}]", x, y, realLevel, prefab);
     }
 }
 
@@ -343,22 +353,19 @@ public class Map {
 
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
 
-        var level = currentCell.level + (currentCell.movable > 1 ? 1 : 0);
-        var nextLevel = nextCell.level + (nextCell.movable > 1 ? 1 : 0);
+        //var level = currentCell.level;
+        //var nextLevel = nextCell.level;
 
         if (diagonal && (currentCell.isLadder || nextCell.isLadder)) return false;
-        if (nextLevel != level && !currentCell.isLadder && !nextCell.isLadder) return false;
+        if (nextCell.realLevel != currentCell.realLevel && !currentCell.isLadder && !nextCell.isLadder) return false;
 
         if (diagonal) {
             var hCell = cell[nextCell.x, currentCell.y];
             var vCell = cell[currentCell.x, nextCell.y];
-            if (hCell.movable < 1 || vCell.movable < 1 || hCell.isLadder || vCell.isLadder) return false;
-
-            nextLevel = hCell.level + (hCell.movable > 1 ? 1 : 0);
-            if (level != nextLevel) return false;
-
-            nextLevel = vCell.level + (vCell.movable > 1 ? 1 : 0);
-            if (level != nextLevel) return false;
+            if (hCell.movable < 1 || vCell.movable < 1 || hCell.isLadder || vCell.isLadder ||
+                currentCell.realLevel != hCell.realLevel ||
+                currentCell.realLevel != vCell.realLevel
+            ) return false;
         } else {
             /*
                 was before, need to test:
@@ -368,16 +375,16 @@ public class Map {
             if (currentCell.isLadder && nextCell.isLadder && currentCell.direction == nextCell.direction) return true;
             if (currentCell.isLadder) {
                 var exit = GetLadderExits(currentCell);
-                if ((nextCell != exit[0] || level + 1 != nextLevel) &&
-                    (nextCell != exit[1] || (level != nextLevel &&
-                                             (!nextCell.isLadder || level != nextLevel + 1)))) return false;
+                if ((nextCell != exit[0] || currentCell.realLevel + 1 != nextCell.realLevel) &&
+                    (nextCell != exit[1] || (currentCell.realLevel != nextCell.realLevel &&
+                                             (!nextCell.isLadder || currentCell.realLevel != nextCell.realLevel + 1)))) return false;
             }
 
             if (nextCell.isLadder) {
                 var exit = GetLadderExits(nextCell);
-                if ((currentCell != exit[0] || level - 1 != nextLevel) &&
-                    (currentCell != exit[1] || (level != nextLevel &&
-                                                (!currentCell.isLadder || level != nextLevel - 1))))
+                if ((currentCell != exit[0] || currentCell.realLevel - 1 != nextCell.realLevel) &&
+                    (currentCell != exit[1] || (currentCell.realLevel != nextCell.realLevel &&
+                                                (!currentCell.isLadder || currentCell.realLevel != nextCell.realLevel - 1))))
                     return false;
             }
         }
@@ -396,6 +403,11 @@ public class Map {
         var currentCell = GetCell(currentX, currentY);
         if (currentCell == null) return false;
 
+        var nextCell = GetCell(currentCell.x+offsetX, currentCell.y+offsetY);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+    }
+
+    public bool isCellOffsetAvailToMove(Cell currentCell, int offsetX, int offsetY) {
         var nextCell = GetCell(currentCell.x+offsetX, currentCell.y+offsetY);
         return nextCell != null && isCellAvailToMove(currentCell, nextCell);
     }
