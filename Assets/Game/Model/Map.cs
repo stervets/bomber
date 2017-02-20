@@ -356,7 +356,7 @@ public class Map {
     }
 
     public bool isCellAvailToMove(Cell currentCell, Cell nextCell, bool passWalls = false) {
-        if (nextCell.movable < 1) return false;
+        if (nextCell.movable < 1 && !passWalls) return false;
 
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
 
