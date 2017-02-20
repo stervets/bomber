@@ -18,9 +18,9 @@ public class BlowController : MonoBehaviour {
 		});
 	}
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.Space)) {
-			Blow (0);
-		}
+		//if (Input.GetKeyDown (KeyCode.Space)) {
+		//	Blow (0);
+		//}
 	}
 
 }

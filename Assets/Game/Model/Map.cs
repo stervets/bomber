@@ -18,6 +18,7 @@ public class Cell {
 
     public int direction;
     public int prefab;
+    public int param;
 
     public Vector3 realPosition;
     public Quaternion realDirection;
@@ -51,10 +52,13 @@ public class Cell {
     }
 
     void BlowNextCell(int lifeTime, int delay, int directionX, int directionY) {
-        if (g.map.isCellOffsetAvailToMove(this, directionX, directionY)) {
-            g.map.cell[x + directionX, y + directionY].radio.Trigger(Channel.Map.BlowCell,
-                lifeTime, delay + g.NextBlowDelay, directionX, directionY);
-        }
+        if (!g.map.isCellOffsetAvailToMove(this, directionX, directionY, true)) return;
+        var nextCell = g.map.cell[x + directionX, y + directionY];
+        g.map.cell[x + directionX, y + directionY]
+            .radio.Trigger(Channel.Map.BlowCell,
+                lifeTime, delay + g.NextBlowDelay, directionX, directionY,
+                nextCell.movable > 1 && realLevel >= nextCell.level && realLevel <= nextCell.realLevel ?
+                    realLevel : nextCell.realLevel);
     }
 
     void OnBlowCell(params object[] args) {
@@ -62,6 +66,7 @@ public class Cell {
         // [1] delay
         // [2] int directionX
         // [3] int directionY
+        // [4] int blow level
         var lifeTime = (int) args[0];
 
         var length = args.Length;
@@ -74,16 +79,13 @@ public class Cell {
             return;
         }
 
-        var delay = (length > 1 ? (int) args[1] : 0);
+        var delay = length > 1 ? (int) args[1] : 0;
         Observable.Timer(TimeSpan.FromMilliseconds(delay))
             .Subscribe(_ => {
                 var savedBlowable = blowable;
-                radio.Trigger(Channel.Map.MakeBlowCell, blowInitializer, directionX, directionY);
-                /*
-                if (blowInitializer) {
-                    g.c.Trigger(Channel.Map.MakeBlowCell, realPosition);
-                }
-                */
+                radio.Trigger(Channel.Map.MakeBlowCell, blowInitializer, directionX, directionY,
+                    length > 4 ? (int) args[4] : realLevel);
+
                 if (blowable != savedBlowable) {
                     setPositions();
                 }
@@ -108,12 +110,13 @@ public class Cell {
     }
 
     public Cell(string data) {
-        string[] param = data.Split(',');
-        x = int.Parse(param[0]);
-        y = int.Parse(param[1]);
-        level = int.Parse(param[2]);
-        direction = int.Parse(param[3]);
-        prefab = int.Parse(param[4]);
+        string[] dataItem = data.Split(',');
+        x = int.Parse(dataItem[0]);
+        y = int.Parse(dataItem[1]);
+        level = int.Parse(dataItem[2]);
+        direction = int.Parse(dataItem[3]);
+        prefab = int.Parse(dataItem[4]);
+        param = int.Parse(dataItem[5]);
         FinalizeInitialization();
     }
 
@@ -121,9 +124,10 @@ public class Cell {
         return string.Join(",", new string[] {
             x.ToString(),
             y.ToString(),
-            realLevel.ToString(),
+            level.ToString(),
             direction.ToString(),
-            prefab.ToString()
+            prefab.ToString(),
+            param.ToString()
         });
     }
 
@@ -261,6 +265,7 @@ public class Map {
 
                 if (UnityEngine.Random.Range(0, 4) == 0) {
                     _cell[x, y].prefab = 3;
+                    _cell[x, y].param = UnityEngine.Random.Range(0, 3);
                 }
 
                 if (y == 6 && UnityEngine.Random.Range(0, 5) == 0) {
@@ -271,6 +276,7 @@ public class Map {
 
                 if (x < 6) {
                     _cell[x, y].prefab = 3;
+                    _cell[x, y].param = UnityEngine.Random.Range(0, 3);
                 }
 
                 if ((x == 4 || x == 6) && y != 8) {
@@ -288,7 +294,7 @@ public class Map {
 
     public Cell GetCellFromReal(Vector3 position) {
         var cellXY = GetTablePositionFromReal(position);
-        return cell[(int)cellXY.x, (int)cellXY.y];
+        return cell[(int) cellXY.x, (int) cellXY.y];
     }
 
     public static Vector3 GetTablePositionFromReal(Vector3 position) {
@@ -349,16 +355,19 @@ public class Map {
         };
     }
 
-    public bool isCellAvailToMove(Cell currentCell, Cell nextCell) {
+    public bool isCellAvailToMove(Cell currentCell, Cell nextCell, bool passWalls = false) {
         if (nextCell.movable < 1) return false;
 
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
 
-        //var level = currentCell.level;
-        //var nextLevel = nextCell.level;
+        var nextCellRealLevel = nextCell.realLevel;
+        if (passWalls && nextCell.movable > 1 &&
+            currentCell.realLevel >= nextCell.level && currentCell.realLevel <= nextCell.realLevel) {
+            nextCellRealLevel = currentCell.realLevel;
+        }
 
         if (diagonal && (currentCell.isLadder || nextCell.isLadder)) return false;
-        if (nextCell.realLevel != currentCell.realLevel && !currentCell.isLadder && !nextCell.isLadder) return false;
+        if (nextCellRealLevel != currentCell.realLevel && !currentCell.isLadder && !nextCell.isLadder) return false;
 
         if (diagonal) {
             var hCell = cell[nextCell.x, currentCell.y];
@@ -368,66 +377,63 @@ public class Map {
                 currentCell.realLevel != vCell.realLevel
             ) return false;
         } else {
-            /*
-                was before, need to test:
-                if (!currentCell.isLadder || !nextCell.isLadder || currentCell.direction != nextCell.direction ||
-                    currentCell.x != nextCell.x && currentCell.y != nextCell.y) //this === diagonal {
-            */
             if (currentCell.isLadder && nextCell.isLadder && currentCell.direction == nextCell.direction) return true;
             if (currentCell.isLadder) {
                 var exit = GetLadderExits(currentCell);
-                if ((nextCell != exit[0] || currentCell.realLevel + 1 != nextCell.realLevel) &&
-                    (nextCell != exit[1] || (currentCell.realLevel != nextCell.realLevel &&
-                                             (!nextCell.isLadder || currentCell.realLevel != nextCell.realLevel + 1)))) return false;
+                if ((nextCell != exit[0] || currentCell.realLevel + 1 != nextCellRealLevel) &&
+                    (nextCell != exit[1] || (currentCell.realLevel != nextCellRealLevel &&
+                                             (!nextCell.isLadder || currentCell.realLevel != nextCellRealLevel + 1))))
+                    return false;
             }
 
             if (nextCell.isLadder) {
                 var exit = GetLadderExits(nextCell);
-                if ((currentCell != exit[0] || currentCell.realLevel - 1 != nextCell.realLevel) &&
-                    (currentCell != exit[1] || (currentCell.realLevel != nextCell.realLevel &&
-                                                (!currentCell.isLadder || currentCell.realLevel != nextCell.realLevel - 1))))
+                if ((currentCell != exit[0] || currentCell.realLevel - 1 != nextCellRealLevel) &&
+                    (currentCell != exit[1] || (currentCell.realLevel != nextCellRealLevel &&
+                                                (!currentCell.isLadder ||
+                                                 currentCell.realLevel != nextCellRealLevel - 1))))
                     return false;
             }
         }
         return true;
     }
 
-    public bool isCellAvailToMove(int currentX, int currentY, int nextX, int nextY) {
+    public bool isCellAvailToMove(int currentX, int currentY, int nextX, int nextY, bool passWalls = false) {
         var currentCell = GetCell(currentX, currentY);
         if (currentCell == null) return false;
 
         var nextCell = GetCell(nextX, nextY);
-        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell, passWalls);
     }
 
-    public bool isCellOffsetAvailToMove(int currentX, int currentY, int offsetX, int offsetY) {
+    public bool isCellOffsetAvailToMove(int currentX, int currentY, int offsetX, int offsetY, bool passWalls = false) {
         var currentCell = GetCell(currentX, currentY);
         if (currentCell == null) return false;
 
-        var nextCell = GetCell(currentCell.x+offsetX, currentCell.y+offsetY);
-        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+        var nextCell = GetCell(currentCell.x + offsetX, currentCell.y + offsetY);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell, passWalls);
     }
 
-    public bool isCellOffsetAvailToMove(Cell currentCell, int offsetX, int offsetY) {
-        var nextCell = GetCell(currentCell.x+offsetX, currentCell.y+offsetY);
-        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+    public bool isCellOffsetAvailToMove(Cell currentCell, int offsetX, int offsetY, bool passWalls = false) {
+        var nextCell = GetCell(currentCell.x + offsetX, currentCell.y + offsetY);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell, passWalls);
     }
 
-    public bool isCellAvailToMove(int currentX, int currentY, Cell nextCell) {
+    public bool isCellAvailToMove(int currentX, int currentY, Cell nextCell, bool passWalls = false) {
         var currentCell = GetCell(currentX, currentY);
-        return currentCell != null && isCellAvailToMove(currentCell, nextCell);
+        return currentCell != null && isCellAvailToMove(currentCell, nextCell, passWalls);
     }
 
-    public bool isCellAvailToMove(Cell currentCell, int nextX, int nextY) {
+    public bool isCellAvailToMove(Cell currentCell, int nextX, int nextY, bool passWalls = false) {
         var nextCell = GetCell(nextX, nextY);
-        return nextCell != null && isCellAvailToMove(currentCell, nextCell);
+        return nextCell != null && isCellAvailToMove(currentCell, nextCell, passWalls);
     }
 
 
     private void PutCellIntoOpenList(List<PathCell> open, List<PathCell> closed, PathCell currentCell, Cell finish,
         int offsetX, int offsetY) {
         var nextCell = GetCell(currentCell.cell.x + offsetX, currentCell.cell.y + offsetY);
-        if (nextCell==null || !isCellAvailToMove(currentCell.cell, nextCell)) return;
+        if (nextCell == null || !isCellAvailToMove(currentCell.cell, nextCell)) return;
 
         var g = currentCell.g + (currentCell.cell.x != nextCell.x && currentCell.cell.y != nextCell.y ? 141f : 100f);
         var h = GetDistance(nextCell, finish);

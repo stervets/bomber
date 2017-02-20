@@ -11,7 +11,6 @@ public class PlayerController : ActorBehaviour {
     }
 
     protected void OnMapLoaded(params object[] args) {
-        Debug.Log(g.map);
         SetCell(g.map.cell[6,5]);
     }
 
@@ -19,6 +18,9 @@ public class PlayerController : ActorBehaviour {
     void Update() {
         if (Input.GetMouseButtonDown(0)) {
             moveToCell(gc.GetCellFromCamera(Input.mousePosition));
+        }
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            cell.Blow(4);
         }
     }
 

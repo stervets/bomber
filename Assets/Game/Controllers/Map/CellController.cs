@@ -17,12 +17,12 @@ public class CellController : ControllerBehaviour {
 		cell.isLadder = isLadder;
 	}
 
-	protected virtual void SetListeners(){
+	protected virtual void InitCellController(){
 	}
 
 	public void BindCell(Cell _cell){
 		cell = _cell;
 		UpdateCell ();
-		SetListeners ();
+	    InitCellController ();
 	}
 }

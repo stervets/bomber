@@ -4,48 +4,40 @@ using UnityEngine;
 using UniRx;
 
 public class CellControllerWall : CellController {
+    public GameObject wallPrefab;
+    private List<WallBlockController> walls;
 
 	private Transform Explosion;
 	private Transform sparkles;
+    private Transform bigSparkles;
 
-	private Transform cubeParts;
-	private Rigidbody[] blownBlocks;
-	private BoxCollider[] blownBlocksColliders;
+    private ParticleSystem ExplosionFX;
+    private ParticleSystem sparklesFX;
+    private ParticleSystem bigSparklesFX;
 
 	private Vector3 blowPosition;
 	private float variety = 0.1f;
 
-	private ParticleSystem ExplosionFX;
-	private ParticleSystem sparklesFX;
-	private ParticleSystem bigSparklesFX;
-	private GameObject wall;
-
-
 	protected override void OnAwake(params object[] args) {
+	    walls = new List<WallBlockController>();
 	}
 
 	protected override void OnStart(params object[] args) {
-		wall = transform.FindChild ("wallBlock").gameObject;
 		Explosion = transform.FindChild ("ExplosionFX");
 		ExplosionFX = Explosion.GetComponent<ParticleSystem> ();
 
 		sparkles = transform.FindChild ("sparkles");
 		sparklesFX = sparkles.GetComponent<ParticleSystem> ();
-		bigSparklesFX = transform.FindChild("bigSparkles").GetComponent<ParticleSystem> ();
 
-		cubeParts = transform.FindChild ("cubeParts");
-		blownBlocks = cubeParts.GetComponentsInChildren<Rigidbody> ();
-		blownBlocksColliders = cubeParts.GetComponentsInChildren<BoxCollider> ();
-		blowPosition = transform.position - Vector3.up*0.5f;
+	    bigSparkles = transform.FindChild ("bigSparkles");
+	    bigSparklesFX = bigSparkles.GetComponent<ParticleSystem> ();
 	}
 
 	void OnMakeBlowCell(object[] args){
 		bool blowInitializer = (bool)args [0];
-		bool above = (bool)args [1];
-
-		Explosion.position = transform.position + (above ? Vector3.up : Vector3.zero);
-		sparkles.position = Explosion.position;
-
+	    Explosion.position = new Vector3(cell.realPosition.x, (int) args[3], cell.realPosition.z);
+	    bigSparkles.position = sparkles.position = Explosion.position;
+        /*
 		if (cell.movable>1 && (blowInitializer || !above)) {
 			Destroy (wall);
 			cell.blowable = (int)Blowable.Yes;
@@ -69,14 +61,26 @@ public class CellControllerWall : CellController {
 
 			Destroy (cubeParts.gameObject, 2f);
 		}
-
+        */
 		if (blowInitializer) {
 			sparklesFX.Play ();
 		}
 		ExplosionFX.Play ();
 	}
 
-	protected override void SetListeners(){
+	protected override void InitCellController(){
 		ListenTo (cell.radio, Channel.Map.MakeBlowCell, OnMakeBlowCell);
+	    if ((cell.movable = cell.param + 1) == 1) {
+	        cell.blowable = 2;
+	    }
+
+	    for (var i = 0; i < cell.param; i++) {
+	        //Map.GetRealPositionFromTable(x, y, realLevel);
+	        var wall = Instantiate(wallPrefab, Map.GetRealPositionFromTable(cell.x, cell.y, cell.level + i),
+	            cell.realDirection);
+	        wall.transform.parent = transform;
+	        walls.Add(wall.GetComponent<WallBlockController>());
+	    }
+        // walls
 	}
 }

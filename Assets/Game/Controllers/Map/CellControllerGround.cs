@@ -6,7 +6,7 @@ public class CellControllerGround : CellController {
 
 	private ParticleSystem ExplosionFX;
 	private ParticleSystem sparklesFX;
-	private bool sparkles = false;
+	private bool sparkles;
 
 	protected override void OnAwake(params object[] args) {
 	}
@@ -32,7 +32,7 @@ public class CellControllerGround : CellController {
 		ExplosionFX.Play ();
 	}
 
-	protected override void SetListeners(){
+	protected override void InitCellController(){
 		ListenTo (cell.radio, Channel.Map.MakeBlowCell, OnMakeBlowCell);
 	}
 }
