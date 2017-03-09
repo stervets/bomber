@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UniRx;
 using UnityEngine.UI;
 
@@ -9,12 +10,15 @@ public class GameStateEditor : StateBehaviour {
     private GameObject map;
     private GameObject gizmosCamera;
     private GameObject cursor;
+    private GameObject blockPreviewContainer;
+    private GameObject blockPreview;
+    private int blockIndex;
 
     private Dictionary<KeyCode, Action> keyMap;
 
     private Vector3 cursorTablePosition = Vector3.zero;
 
-    Rect guiRect = new Rect(0, 0, Screen.width, Screen.height);
+    readonly Rect guiRect = new Rect(0, 0, Screen.width, Screen.height);
 
     protected override void OnAwake(params object[] args) {
         SetDefaultState(State.Editor);
@@ -26,6 +30,8 @@ public class GameStateEditor : StateBehaviour {
             {KeyCode.DownArrow, () => { MoveCursor(Vector3.up); }},
             {KeyCode.W, () => { MoveCursor(Vector3.forward); }},
             {KeyCode.S, () => { MoveCursor(Vector3.back); }},
+            {KeyCode.Q, () => { NextBlockPreview(-1); }},
+            {KeyCode.E, () => { NextBlockPreview(1); }},
             {KeyCode.A, () => {
                 var block = g.map.GetBlock(cursorTablePosition);
                 if (block!=null) {
@@ -49,14 +55,28 @@ public class GameStateEditor : StateBehaviour {
             {KeyCode.Return, () => {
                 var cell = g.map.GetCell(cursorTablePosition);
                 if (cell!=null) {
-                    cell.CreateBlock(0);
+                    cell.CreateBlock((byte)blockIndex);
                 }
             }}
         };
     }
 
+    void NextBlockPreview(int offset) {
+        blockIndex += offset;
+        blockIndex = blockIndex < 0 ? g.map.blockPrefabs.Length - 1 :
+        (blockIndex >= g.map.blockPrefabs.Length ? 0 : blockIndex);
+        if (blockPreview != null) {
+            Destroy(blockPreview);
+        }
+        blockPreview = Instantiate(g.map.blockPrefabs[blockIndex]);
+        blockPreview.transform.parent = blockPreviewContainer.transform;
+        blockPreview.transform.localPosition = Vector3.zero;
+        blockPreview.transform.localRotation = Quaternion.identity;
+    }
+
     protected override void OnStart(params object[] args) {
         gizmosCamera = g.camera.transform.FindChild("GizmosCamera").gameObject;
+        blockPreviewContainer = gizmosCamera.transform.FindChild("PrefabPreview").gameObject;
     }
 
     CompositeDisposable disposables;
@@ -77,6 +97,8 @@ public class GameStateEditor : StateBehaviour {
                 .Subscribe(_ => { action.Value(); })
                 .AddTo(disposables);
         }
+
+        NextBlockPreview(0);
     }
 
     protected override void OnDisabled(params object[] args) {
@@ -95,5 +117,9 @@ public class GameStateEditor : StateBehaviour {
     private void OnGUI() {
         //GUI.Box();
         GUI.Box(guiRect, cursorTablePosition.ToString());
+    }
+
+    private void FixedUpdate() {
+        blockPreviewContainer.transform.LookAt(blockPreviewContainer.transform.position + (blockPreviewContainer.transform.forward - blockPreviewContainer.transform.right*0.05f));
     }
 }

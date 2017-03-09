@@ -39,8 +39,8 @@ public class BlockController : ControllerBehaviour {
     }
 
     protected override void OnStart(params object[] args) {
-        if (imported)return;
         cell = transform.parent.GetComponent<CellController>();
+        if (imported)return;
         name = name.Substring(0, name.IndexOf('('));
         for (var i = 0; i < g.map.blockPrefabs.Length; i++) {
             if (g.map.blockPrefabs[i].name != name) continue;
