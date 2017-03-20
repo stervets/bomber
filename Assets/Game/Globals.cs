@@ -12,6 +12,12 @@ public enum Blowable {
 	Yes
 }
 
+public enum CellItem {
+    Null,
+    PlayerRespawn,
+    EnemyRespawn
+}
+
 /**
  * Objects states
  */
@@ -60,7 +66,10 @@ public static class Channel {
 		SetCellParams,
 
 		BlowCell,
-		MakeBlowCell
+		MakeBlowCell,
+	    SetCellItem,
+
+	    MoveBlockDown
 	}
 
     public enum Actor {

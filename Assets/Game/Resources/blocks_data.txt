@@ -1,72 +1,80 @@
 {"frames": {
 
-"BaseColor.png":
+"ball.png":
 {
-	"frame": {"x":1,"y":1,"w":128,"h":128},
+	"frame": {"x":0,"y":0,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_0.png":
+"barrel.png":
 {
-	"frame": {"x":1,"y":131,"w":128,"h":128},
+	"frame": {"x":0,"y":128,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_1.png":
+"blocker.png":
 {
-	"frame": {"x":1,"y":261,"w":128,"h":128},
+	"frame": {"x":0,"y":256,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_2.png":
+"bomb.png":
 {
-	"frame": {"x":131,"y":1,"w":128,"h":128},
+	"frame": {"x":0,"y":384,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_3.png":
+"coin.png":
 {
-	"frame": {"x":261,"y":1,"w":128,"h":128},
+	"frame": {"x":128,"y":0,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_4.png":
+"crate.png":
 {
-	"frame": {"x":131,"y":131,"w":128,"h":128},
+	"frame": {"x":256,"y":0,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_5.png":
+"floor.png":
 {
-	"frame": {"x":131,"y":261,"w":128,"h":128},
+	"frame": {"x":384,"y":0,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_6.png":
+"grass_floor.png":
 {
-	"frame": {"x":261,"y":131,"w":128,"h":128},
+	"frame": {"x":128,"y":128,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
 	"sourceSize": {"w":128,"h":128}
 },
-"BaseColor_7.png":
+"ladder.png":
 {
-	"frame": {"x":261,"y":261,"w":128,"h":128},
+	"frame": {"x":128,"y":256,"w":128,"h":128},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
+	"sourceSize": {"w":128,"h":128}
+},
+"water.png":
+{
+	"frame": {"x":128,"y":384,"w":128,"h":128},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
@@ -75,10 +83,10 @@
 "meta": {
 	"app": "http://www.codeandweb.com/texturepacker",
 	"version": "1.0",
-	"image": "bomber.pvr",
+	"image": "blocks.pvr",
 	"format": "PVRTCI_2BPP_RGB",
 	"size": {"w":512,"h":512},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:943cda4ddf896d6349f5f3f935cfc5c4:92c96cbcb06591266ec27dc85899f55a:6fce10ca2ecaf3835bfe3e4e4f8457c6$"
+	"smartupdate": "$TexturePacker:SmartUpdate:fa5d5d60788b613729682111564c5878:4d684e8f8d595a06e7ee031ae7f36ea2:3746db1e53f097aa54d340cd6c20f68f$"
 }
 }

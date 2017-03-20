@@ -18,7 +18,7 @@ public class GameStateEditor : StateBehaviour {
 
     private Vector3 cursorTablePosition = Vector3.zero;
 
-    readonly Rect guiRect = new Rect(0, 0, Screen.width, Screen.height);
+    readonly Rect guiRect = new Rect(0, 0, 170, 30);
 
     protected override void OnAwake(params object[] args) {
         SetDefaultState(State.Editor);
@@ -32,6 +32,30 @@ public class GameStateEditor : StateBehaviour {
             {KeyCode.S, () => { MoveCursor(Vector3.back); }},
             {KeyCode.Q, () => { NextBlockPreview(-1); }},
             {KeyCode.E, () => { NextBlockPreview(1); }},
+            {KeyCode.LeftBracket, () => {
+                var cell = g.map.GetCell(cursorTablePosition);
+                if (cell!=null) {
+                    cell.ChangeZ(-1);
+                }
+            }},
+            {KeyCode.RightBracket, () => {
+                var cell = g.map.GetCell(cursorTablePosition);
+                if (cell!=null) {
+                    cell.ChangeZ(1);
+                }
+            }},
+            {KeyCode.Comma, () => {
+                var cell = g.map.GetCell(cursorTablePosition);
+                if (cell!=null) {
+                    cell.SetItem((CellItem)((int) cell.item-1));
+                }
+            }},
+            {KeyCode.Period, () => {
+                var cell = g.map.GetCell(cursorTablePosition);
+                if (cell!=null) {
+                    cell.SetItem((CellItem)((int) cell.item+1));
+                }
+            }},
             {KeyCode.A, () => {
                 var block = g.map.GetBlock(cursorTablePosition);
                 if (block!=null) {
@@ -57,7 +81,8 @@ public class GameStateEditor : StateBehaviour {
                 if (cell!=null) {
                     cell.CreateBlock((byte)blockIndex);
                 }
-            }}
+            }},
+            {KeyCode.P, () => { g.map.saveToFile(); }}
         };
     }
 
@@ -79,11 +104,32 @@ public class GameStateEditor : StateBehaviour {
         blockPreviewContainer = gizmosCamera.transform.FindChild("PrefabPreview").gameObject;
     }
 
+    protected void OnSetCellItem(params object[] args) {
+        var cell = (CellController) args[0];
+        var cellItem = (CellItem) args[1];
+        var gizmo = cell.transform.FindChild("EditorCellItem");
+        if (gizmo != null) {
+            Destroy(gizmo.gameObject);
+        }
+        if (cellItem != CellItem.Null) {
+            var editorCellItem = Instantiate(g.map.editorCellItemPrefab);
+            editorCellItem.transform.parent = cell.transform;
+            editorCellItem.transform.localPosition = Vector3.up;
+            editorCellItem.name = "EditorCellItem";
+            editorCellItem.GetComponent<EditorCellItem>().itemName = cellItem.ToString();
+        }
+    }
+
     CompositeDisposable disposables;
 
     protected override void OnEnabled(params object[] args) {
         map = Instantiate(gc.MapPrefab);
-        map.GetComponent<MapController>().MakeField(10, 5);
+
+        ListenTo(g.map, Channel.GameObject.Start, objects => {
+            g.map.loadFromFile();
+        });
+
+        ListenTo(g.map, Channel.Map.SetCellItem, OnSetCellItem);
 
         cursor = Instantiate(g.map.editorCursorPrefab);
         gizmosCamera.SetActive(true);
@@ -103,7 +149,9 @@ public class GameStateEditor : StateBehaviour {
 
     protected override void OnDisabled(params object[] args) {
         Destroy(cursor);
-        gizmosCamera.SetActive(false);
+        if (gizmosCamera != null) {
+            gizmosCamera.SetActive(false);
+        }
         disposables.Clear();
         Destroy(map);
     }

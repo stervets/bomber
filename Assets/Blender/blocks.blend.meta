@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 24ceb7e6d73284428977b3996efb9b7b
-timeCreated: 1488748629
+timeCreated: 1489138507
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -15,6 +15,8 @@ ModelImporter:
     100014: ladder
     100016: wall
     100018: water
+    100020: floor2
+    100022: plane
     400000: ball
     400002: barrel
     400004: blocker
@@ -25,6 +27,8 @@ ModelImporter:
     400014: ladder
     400016: wall
     400018: water
+    400020: floor2
+    400022: plane
     2300000: ball
     2300002: barrel
     2300004: blocker
@@ -34,6 +38,8 @@ ModelImporter:
     2300012: ladder
     2300014: wall
     2300016: water
+    2300018: floor2
+    2300020: plane
     3300000: ball
     3300002: barrel
     3300004: blocker
@@ -43,6 +49,8 @@ ModelImporter:
     3300012: ladder
     3300014: wall
     3300016: water
+    3300018: floor2
+    3300020: plane
     4300000: floor
     4300002: wall
     4300004: blocker
@@ -52,6 +60,8 @@ ModelImporter:
     4300012: coin
     4300014: bomb
     4300016: barrel
+    4300018: floor2
+    4300020: plane
     7400000: Default Take
     9500000: //RootNode
   materials:

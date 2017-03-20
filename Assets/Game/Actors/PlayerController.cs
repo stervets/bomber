@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : ActorBehaviour {
+public class PlayerController : ActorController {
     /*
     protected override void OnAwake(params object[] args) {
         speed = 3.5f;

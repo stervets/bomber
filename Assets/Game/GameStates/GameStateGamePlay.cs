@@ -18,9 +18,17 @@ public class GameStateGamePlay : StateBehaviour {
 		//Map map = new Map ("test");
 	}
 
-	protected override void OnEnabled(params object[] args) {
+    protected void OnMapLoaded(params object[] args) {
+        console.log("map loaded");
+    }
+
+    protected override void OnEnabled(params object[] args) {
 	    map = Instantiate(gc.MapPrefab);
-	    console.log("game controller enabled");
+	    ListenTo(g.map, Channel.GameObject.Start, objects => {
+	        g.map.loadFromFile();
+	    });
+
+	    ListenTo(g.map, Channel.Map.Loaded, OnMapLoaded);
 	}
 
 	protected override void OnDisabled(params object[] args) {

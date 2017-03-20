@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Linq;
+using Random = UnityEngine.Random;
 
 public class MapController : ControllerBehaviour {
     //private Map map;
@@ -14,6 +16,7 @@ public class MapController : ControllerBehaviour {
 
     public GameObject cellPrefab;
     public GameObject editorCursorPrefab;
+    public GameObject editorCellItemPrefab;
     public GameObject[] blockPrefabs;
 
     public void DestroyField() {
@@ -38,7 +41,7 @@ public class MapController : ControllerBehaviour {
                 cell.transform.parent = transform;
                 var cellController = cell.GetComponent<CellController>();
                 cellController.SetPosition(x, y);
-                cellController.CreateBlock(0);
+                //cellController.CreateBlock(0);
                 cells.Last().Add(cellController);
             }
         }
@@ -51,6 +54,11 @@ public class MapController : ControllerBehaviour {
     public CellController GetCell(Vector3 position) {
         return GetCell((ushort) position.x, (ushort) position.y);
     }
+
+    public CellController GetCellFromReal(Vector3 position) {
+        return GetCell(GetTablePositionFromReal(position));
+    }
+
 
     public BlockController GetBlock(Vector3 position) {
         var cell = GetCell(position);
@@ -82,7 +90,52 @@ public class MapController : ControllerBehaviour {
 
     protected override void OnStart(params object[] args) {
         console.log("map controller started");
-        //Debug.Log("asd");
-        //GenerateMapAndSave(20, 15, "test");
+    }
+
+    public void importCells(string data) {
+        var dataItem = data.Split(';');
+        var index = 0;
+
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                cells[y][x].import(dataItem[index++]);
+            }
+        }
+    }
+
+    public string exportCells() {
+        var o = new List<string>();
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                o.Add(cells[y][x].export());
+            }
+        }
+        return string.Join(";", o.ToArray());
+    }
+
+    private string filename = "map01";
+
+    public void saveToFile(string _filename = "") {
+        if (_filename == "") {
+            _filename = filename;
+        }
+        var ini = new INIParser();
+        ini.Open(g.MapPath + _filename + ".ini");
+        ini.WriteValue("Map", "width", width);
+        ini.WriteValue("Map", "height", height);
+        ini.WriteValue("Map", "cells", exportCells());
+        ini.Close();
+    }
+
+    public void loadFromFile(string _filename = "") {
+        if (_filename == "") {
+            _filename = filename;
+        }
+        var ini = new INIParser();
+        ini.Open(g.MapPath + _filename + ".ini");
+        MakeField((ushort)ini.ReadValue("Map", "width", 0), (ushort)ini.ReadValue("Map", "height", 0));
+        importCells(ini.ReadValue("Map", "cells", ""));
+        ini.Close();
+        Trigger(Channel.Map.Loaded);
     }
 }

@@ -48,7 +48,9 @@ public class Radio {
         if (handlers.ContainsKey(eventId)) {
             Observable.Timer(TimeSpan.FromMilliseconds(delay))
                 .Subscribe(_ => {
-                    handlers[eventId](arr);
+                    if (handlers!=null) {
+                        handlers[eventId](arr);
+                    }
                 });
         }
     }
@@ -110,7 +112,9 @@ public abstract class EventBehavior : MonoBehaviour {
         if (handlers.ContainsKey(eventId)) {
             Observable.Timer(TimeSpan.FromMilliseconds(delay))
                 .Subscribe(_ => {
-                    handlers[eventId](arr);
+                    if (enabled && handlers != null) {
+                        handlers[eventId](arr);
+                    }
                 });
         }
     }
