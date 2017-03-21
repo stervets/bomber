@@ -84,6 +84,7 @@ public class MapController : ControllerBehaviour {
     }
 
     protected override void OnAwake(params object[] args) {
+        mapLayer = LayerMask.GetMask("Map");
         g.map = this;
         Random.InitState(seed);
     }
@@ -206,7 +207,7 @@ public class MapController : ControllerBehaviour {
         return passBlowable && nextBlock.isBlowable;
     }
 
-    private readonly LayerMask mapLayer = LayerMask.GetMask("Map");
+    private LayerMask mapLayer;
     private RaycastHit hit;
     public CellController GetCellFromCamera(Vector3 position) {
         var ray = g.camera.ScreenPointToRay(position);
