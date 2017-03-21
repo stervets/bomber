@@ -34,4 +34,21 @@ public class GameStateGamePlay : StateBehaviour {
 	protected override void OnDisabled(params object[] args) {
 		Destroy (map);
 	}
+
+    /*
+    // Test isCellAvailToMove
+    private CellController cell;
+    void Update() {
+        if (Input.GetMouseButtonDown(0)) {
+            if (cell == null) {
+                cell = g.map.GetCellFromCamera(Input.mousePosition);
+                console.log(cell);
+            } else {
+                console.log(g.map.GetCellFromCamera(Input.mousePosition));
+                console.log(g.map.isCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition)));
+                cell = null;
+            }
+        }
+    }
+    */
 }

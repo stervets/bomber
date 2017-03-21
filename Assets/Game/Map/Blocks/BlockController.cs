@@ -75,4 +75,8 @@ public class BlockController : ControllerBehaviour {
             break;
         }
     }
+
+    public override String ToString() {
+        return String.Format("Block[{0},{1},{2}] flat:{3}, ladder:{4}, blowable:{5}", cell.x, cell.y, (int)transform.position.y, isFlat, isLadder, isBlowable);
+    }
 }

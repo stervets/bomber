@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 
 public enum Movable {
-	No,
-	Yes,
-	SecondFloor
+    No,
+    Yes,
+    SecondFloor
 }
 
 public enum Blowable {
-	No,
-	BlowStopper,
-	Yes
+    No,
+    BlowStopper,
+    Yes
 }
 
 public enum CellItem {
@@ -22,13 +22,13 @@ public enum CellItem {
  * Objects states
  */
 public static class State {
-	public static readonly int Default = 0;
-	public static readonly int Awake = 1;
-	public static readonly int GamePlay = 2;
+    public static readonly int Default = 0;
+    public static readonly int Awake = 1;
+    public static readonly int GamePlay = 2;
     public static readonly int Editor = 3;
-	public enum Global {
 
-	}
+    public enum Global {
+    }
 
 
     public enum Cube {
@@ -39,38 +39,38 @@ public static class State {
 
 /*
  * Radio channels (events)
- */ 
+ */
 public static class Channel {
-	public enum State {
-		Enable,
-		Set,
-		Disable,
-	}
+    public enum State {
+        Enable,
+        Set,
+        Disable,
+    }
 
-	public enum GameObject {
-		Awake,
-		Start,
-		Enable,
-		Disable,
-		Destroy
-	}
+    public enum GameObject {
+        Awake,
+        Start,
+        Enable,
+        Disable,
+        Destroy
+    }
 
     public enum Controller {
         SetState
     }
 
-	public enum Map {
-		Loading,
-		Loaded,
-		NewCell,
-		SetCellParams,
+    public enum Map {
+        Loading,
+        Loaded,
+        NewCell,
+        SetCellParams,
 
-		BlowCell,
-		MakeBlowCell,
-	    SetCellItem,
+        BlowCell,
+        MakeBlowCell,
+        SetCellItem,
 
-	    MoveBlockDown
-	}
+        MoveBlockDown
+    }
 
     public enum Actor {
         StartMove,
@@ -79,14 +79,14 @@ public static class Channel {
         ChangeLocation
     }
 }
-	
+
 public static class g {
     public static readonly float FixedUpdateFrameRate = 1f / 30f; // default value == 0.02f
 
-	public static readonly string MapPath = "Assets/Maps/";
-	public static readonly int NextBlowDelay = 5; // Задержка перед взрывом следующей клетки
+    public static readonly string MapPath = "Assets/Maps/";
+    public static readonly int NextBlowDelay = 5; // Задержка перед взрывом следующей клетки
 
-	public static GameController c;
+    public static GameController c;
     public static Camera camera;
     public static CameraStateController cameraController;
     public static MapController map;
@@ -99,9 +99,8 @@ public static class console {
             if (str != "") {
                 str += ", ";
             }
-            str += arg.ToString();
+            str += arg == null ? "NULL" : arg.ToString();
         }
         Debug.Log(str);
     }
 }
-

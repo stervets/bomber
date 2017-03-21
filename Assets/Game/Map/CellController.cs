@@ -5,8 +5,8 @@ using System.Linq;
 using UnityEngine;
 
 public class CellController : ControllerBehaviour {
-    public ushort x;
-    public ushort y;
+    public int x;
+    public int y;
 
     public byte z;
     public List<BlockController> blocks;
@@ -14,12 +14,13 @@ public class CellController : ControllerBehaviour {
     public CellItem item = CellItem.Null;
 
     public Vector3 top;
+    public BlockController lastBlock;
 
     void CalculateTop() {
         top = transform.position + Vector3.up * blocks.Count;
     }
 
-    public void SetPosition(ushort _x, ushort _y, byte _z = 0) {
+    public void SetPosition(int _x, int _y, byte _z = 0) {
         x = _x;
         y = _y;
         z = _z;
@@ -47,6 +48,7 @@ public class CellController : ControllerBehaviour {
 
     public void AddBlock(BlockController block) {
         blocks.Add(block);
+        lastBlock = block;
         CalculateTop();
     }
 
@@ -64,6 +66,7 @@ public class CellController : ControllerBehaviour {
 
     public void RemoveBlock(BlockController block) {
         RemoveBlock((byte)blocks.IndexOf(block));
+        lastBlock = blocks.Count > 0 ? blocks.Last() : null;
     }
 
     public void import(string data) {
@@ -85,5 +88,9 @@ public class CellController : ControllerBehaviour {
             o[i] = blocks[i-2].export();
         }
         return string.Join(",", o);
+    }
+
+    public override string ToString() {
+        return String.Format("cell[{0}, {1}, {2}]", x, y, z);
     }
 }

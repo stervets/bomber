@@ -11,8 +11,8 @@ public class MapController : ControllerBehaviour {
     public int seed;
 
     public List<List<CellController>> cells;
-    public ushort width;
-    public ushort height;
+    public int width;
+    public int height;
 
     public GameObject cellPrefab;
     public GameObject editorCursorPrefab;
@@ -29,14 +29,14 @@ public class MapController : ControllerBehaviour {
         }
     }
 
-    public void MakeField(ushort _width, ushort _height) {
+    public void MakeField(int _width, int _height) {
         DestroyField();
         width = _width;
         height = _height;
         cells = new List<List<CellController>>();
-        for (ushort y = 0; y < height; y++) {
+        for (int y = 0; y < height; y++) {
             cells.Add(new List<CellController>());
-            for (ushort x = 0; x < width; x++) {
+            for (int x = 0; x < width; x++) {
                 var cell = Instantiate(cellPrefab);
                 cell.transform.parent = transform;
                 var cellController = cell.GetComponent<CellController>();
@@ -47,12 +47,12 @@ public class MapController : ControllerBehaviour {
         }
     }
 
-    public CellController GetCell(ushort x, ushort y) {
-        return x < width && y < height ? cells[y][x] : null;
+    public CellController GetCell(int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height ? cells[y][x] : null;
     }
 
     public CellController GetCell(Vector3 position) {
-        return GetCell((ushort) position.x, (ushort) position.y);
+        return GetCell((int) position.x, (int) position.y);
     }
 
     public CellController GetCellFromReal(Vector3 position) {
@@ -63,7 +63,7 @@ public class MapController : ControllerBehaviour {
     public BlockController GetBlock(Vector3 position) {
         var cell = GetCell(position);
         if (cell == null) return null;
-        var z = (int)(position.z - cell.z);
+        var z = (int) (position.z - cell.z);
         return z >= 0 && z < cell.blocks.Count ? cell.blocks[z] : null;
     }
 
@@ -133,9 +133,103 @@ public class MapController : ControllerBehaviour {
         }
         var ini = new INIParser();
         ini.Open(g.MapPath + _filename + ".ini");
-        MakeField((ushort)ini.ReadValue("Map", "width", 0), (ushort)ini.ReadValue("Map", "height", 0));
+        MakeField(ini.ReadValue("Map", "width", 0), ini.ReadValue("Map", "height", 0));
         importCells(ini.ReadValue("Map", "cells", ""));
         ini.Close();
         Trigger(Channel.Map.Loaded);
+    }
+
+    public BlockController GetBlockOnSameLevel(BlockController currentBlock, CellController cell, int offset = 0) {
+        if (cell == null) return null;
+        var nextBlockIndex = currentBlock.cell.blocks.IndexOf(currentBlock) - (cell.z - currentBlock.cell.z - offset);
+        return nextBlockIndex < 0 || nextBlockIndex >= cell.blocks.Count ? null : cell.blocks[nextBlockIndex];
+    }
+
+    public static readonly int[][] LadderExits = {
+        new[] {0, -1},
+        new[] {1, 0},
+        new[] {0, 1},
+        new[] {-1, 0}
+    };
+
+    public BlockController[] GetLadderExits(BlockController ladderBlock) {
+        var exitTop = LadderExits[ladderBlock.direction];
+        var exitBottom = LadderExits[Mathf.Clamp(ladderBlock.direction + 2, 0, 3)];
+        var cell = GetCell(ladderBlock.cell.x + exitTop[0], ladderBlock.cell.y + exitTop[1]);
+        var exitTopBlock = GetBlockOnSameLevel(ladderBlock, cell);
+        if (exitTopBlock == null) {
+            exitTopBlock = GetBlockOnSameLevel(ladderBlock, cell, 1);
+            if (exitTopBlock != null && exitTopBlock.isLadder) {
+                exitTopBlock = exitTopBlock.direction == ladderBlock.direction ? exitTopBlock : null;
+            }
+        }
+        return new[] {
+            exitTopBlock,
+            GetBlockOnSameLevel(ladderBlock, GetCell(ladderBlock.cell.x + exitBottom[0], ladderBlock.cell.y + exitBottom[1]), -1)
+        };
+    }
+
+    public bool isCellAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
+        if (nextCell == null) return false;
+        var currentBlock = currentCell.lastBlock;
+        var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
+        var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
+
+        if (nextBlock == null) {
+            if (diagonal || !currentBlock.isLadder) return false;
+            var ladderExits = GetLadderExits(currentBlock);
+            return (ladderExits[0] != null && GetBlockOnSameLevel(currentBlock, nextCell, 1) == ladderExits[0]) ||
+                   (ladderExits[1] != null && GetBlockOnSameLevel(currentBlock, nextCell, -1) == ladderExits[1]);
+        }
+
+        if (nextBlock == nextCell.lastBlock) {
+            if (nextBlock.isLadder) {
+                if (diagonal) return false;
+                if (currentBlock.isLadder && currentBlock.direction == nextBlock.direction) return true;
+                return GetLadderExits(nextBlock)[0] == currentBlock;
+            }
+            if (diagonal) {
+                var hCell = GetBlockOnSameLevel(currentBlock, cells[currentCell.y][nextCell.x]);
+                if (hCell == null || hCell!=hCell.cell.lastBlock) return false;
+                var vCell = GetBlockOnSameLevel(currentBlock, cells[nextCell.y][currentCell.x]);
+                if (vCell == null || vCell!=vCell.cell.lastBlock || !hCell.isFlat || !vCell.isFlat || hCell.isLadder || vCell.isLadder) return false;
+            }
+            return nextBlock.isFlat || (passBlowable && nextBlock.isBlowable);
+        }
+
+        var ladder = GetBlockOnSameLevel(currentBlock, nextCell, 1);
+        if (ladder == null) return false;
+        if (ladder.isLadder) {
+            if (diagonal) return false;
+            return GetLadderExits(ladder)[1] == currentBlock;
+        }
+        return passBlowable && nextBlock.isBlowable;
+    }
+
+    private readonly LayerMask mapLayer = LayerMask.GetMask("Map");
+    private RaycastHit hit;
+    public CellController GetCellFromCamera(Vector3 position) {
+        var ray = g.camera.ScreenPointToRay(position);
+        if (Physics.Raycast(ray, out hit, 50, mapLayer)) {
+            return hit.collider.gameObject.GetComponentInParent<BlockController>().cell;
+        }
+        var rayLength = (-0.5f - Vector3.Dot(Vector3.up, ray.origin)) / Vector3.Dot(Vector3.up, ray.direction);
+        var cellPosition = Map.GetTablePositionFromReal(ray.origin + ray.direction * rayLength);
+        if (cellPosition.x < 0) {
+            cellPosition.x = 0;
+        } else {
+            if (cellPosition.x >= width) {
+                cellPosition.x = width - 1;
+            }
+        }
+
+        if (cellPosition.y < 0) {
+            cellPosition.y = 0;
+        } else {
+            if (cellPosition.y >= height) {
+                cellPosition.y = height - 1;
+            }
+        }
+        return cells[(int) cellPosition.y][(int) cellPosition.x];
     }
 }
