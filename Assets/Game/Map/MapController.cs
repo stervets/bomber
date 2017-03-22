@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Linq;
 using Random = UnityEngine.Random;
+using UniRx;
 
 public class MapController : ControllerBehaviour {
     //private Map map;
@@ -17,6 +18,7 @@ public class MapController : ControllerBehaviour {
     public GameObject cellPrefab;
     public GameObject editorCursorPrefab;
     public GameObject editorCellItemPrefab;
+    public GameObject debugCubePrefab;
     public GameObject[] blockPrefabs;
 
     public void DestroyField() {
@@ -232,5 +234,130 @@ public class MapController : ControllerBehaviour {
             }
         }
         return cells[(int) cellPosition.y][(int) cellPosition.x];
+    }
+
+
+
+    ////////////////////////////////////////
+    ///
+    ///
+    ///
+    ///
+    private void PutBlockIntoOpenList(List<PathBlock> open, List<PathBlock> closed, PathBlock currentBlock, CellController finish,
+        int offsetX, int offsetY) {
+        var nextCell = GetCell(currentBlock.block.cell.x + offsetX, currentBlock.block.cell.y + offsetY);
+        if (nextCell == null || !isCellAvailToMove(currentBlock.block.cell, nextCell)) return;
+
+        var g = currentBlock.g + (currentBlock.block.cell.x != nextCell.x && currentBlock.block.cell.y != nextCell.y ? 141f : 100f);
+        var h = GetDistance(nextCell, finish);
+
+        var openBlock = open.Find(pathBlock => pathBlock.block.cell == nextCell);
+
+        if (openBlock == null) {
+            if (closed.Find(closedBlock => closedBlock.block.cell == nextCell) != null) return;
+            open.Add(new PathBlock(nextCell.lastBlock) {
+                g = g,
+                h = h,
+                parent = currentBlock
+            });
+        } else {
+            if (!(openBlock.f > g + h)) return;
+            openBlock.g = g;
+            openBlock.h = h;
+            openBlock.parent = currentBlock;
+        }
+    }
+
+    private static int SortPathByF(PathBlock cell1, PathBlock cell2) {
+        return cell1.f > cell2.f ? 1 : (cell1.f < cell2.f ? -1 : 0);
+    }
+
+    private static int SortPathByH(PathBlock cell1, PathBlock cell2) {
+        return cell1.fs > cell2.fs ? 1 : (cell1.fs < cell2.fs ? -1 : 0);
+    }
+
+    public List<BlockController> GetPath(PathBlock start, PathBlock finish) {
+        var waypoints = new List<BlockController>();
+        var currentBlock = finish;
+        while (currentBlock != start) {
+            waypoints.Insert(0, currentBlock.block);
+            currentBlock = currentBlock.parent;
+        }
+        waypoints.Insert(0, start.block);
+        return waypoints;
+    }
+
+    private List<BlockController> FindPathThread(CellController start, CellController finish) {
+        var open = new List<PathBlock>();
+        var closed = new List<PathBlock>();
+
+        var startBlock = new PathBlock(start.lastBlock) {
+            h = GetDistance(start, finish)
+        };
+
+        var currentBlock = startBlock;
+        open.Add(currentBlock);
+
+        while (open.Count > 0) {
+            closed.Add(currentBlock = open[0]);
+            open.Remove(currentBlock);
+            currentBlock.hs = GetDistance(currentBlock.block.cell, start.lastBlock.cell) / 10000F;
+
+            if (currentBlock.block == finish.lastBlock) {
+                return GetPath(startBlock, currentBlock);
+            }
+
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 0);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 0);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, -1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, 1);
+
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, -1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, -1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 1);
+
+            open.Sort(SortPathByF);
+        }
+        closed.Sort(SortPathByH);
+        return GetPath(startBlock, closed[0]);
+    }
+
+    private static float GetDistance(CellController a, CellController b) {
+        return Vector3.SqrMagnitude(a.top - b.top);
+    }
+
+    public void FindPath(CellController start, CellController finish, Action<List<BlockController>> callback) {
+        Observable.Start(() => FindPathThread(start, finish))
+            //.TakeUntilDestroy(g.c)
+            .ObserveOnMainThread()
+            .Subscribe(callback);
+    }
+}
+
+
+public class PathBlock {
+    public BlockController block;
+
+    public float g; // Traveled path length
+    public float h; // Distance to finish
+    public float hs; // Distance to start
+
+    public float f {
+        get { return g + h; }
+    } // Open list sorter value
+
+    public float fs {
+        get { return hs + h; }
+    } // Closed list sorter value
+
+    public PathBlock parent;
+
+    public PathBlock(BlockController _block) {
+        block = _block;
+    }
+    public override string ToString() {
+        //return string.Format ("x: {0}, y: {1}, g: {0}, h: {1}, f: {0}", x, y, g, h, f);
+        return string.Format("[{0},{1}] f:{2}, h:{3}", block.cell.x, block.cell.y, f, h);
     }
 }

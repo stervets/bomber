@@ -51,4 +51,34 @@ public class GameStateGamePlay : StateBehaviour {
         }
     }
     */
+
+
+
+    // Test FindPath
+    private CellController cell;
+
+    void ShowPath(List<BlockController> waypoints) {
+        foreach (var o in GameObject.FindGameObjectsWithTag("Debug")) {
+            Destroy(o, 0.01f);
+        }
+
+        waypoints.ForEach(waypoint => {
+            Instantiate(g.map.debugCubePrefab,
+                waypoint.transform.position + Vector3.up * (waypoint.isLadder ? 0.5f : 1f), Quaternion.identity);
+        });
+    }
+
+    void Update() {
+        if (Input.GetMouseButtonDown(0)) {
+            if (cell == null) {
+                cell = g.map.GetCellFromCamera(Input.mousePosition);
+                console.log(cell);
+            } else {
+                console.log(g.map.GetCellFromCamera(Input.mousePosition));
+                g.map.FindPath(cell, g.map.GetCellFromCamera(Input.mousePosition), ShowPath);
+                cell = null;
+            }
+        }
+    }
+
 }

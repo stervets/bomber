@@ -145,42 +145,6 @@ public class Cell {
     */
 }
 
-public class PathCell {
-    public Cell cell;
-
-    public float g; // Traveled path length
-    public float h; // Distance to finish
-    public float hs; // Distance to start
-
-    public float f {
-        get { return g + h; }
-    } // Open list sorter value
-
-    public float fs {
-        get { return hs + h; }
-    } // Closed list sorter value
-
-    public PathCell parent;
-
-    public PathCell(Cell _cell) {
-        cell = _cell;
-    }
-
-    /*
-    public PathCell(Cell _cell, float _g, float _h, PathCell _parent) {
-        cell = _cell;
-        g = _g;
-        h = _h;
-        parent = _parent;
-    }
-    */
-    public override string ToString() {
-        //return string.Format ("x: {0}, y: {1}, g: {0}, h: {1}, f: {0}", x, y, g, h, f);
-        return string.Format("[{0},{1}] f:{2}, h:{3}", cell.x, cell.y, f, h);
-    }
-}
-
-
 public class Map {
     public Cell[,] cell { get; private set; }
     public ushort countX { get; private set;}
