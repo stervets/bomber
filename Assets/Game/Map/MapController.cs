@@ -145,7 +145,7 @@ public class MapController : ControllerBehaviour {
     public BlockController GetBlockOnSameLevel(BlockController currentBlock, CellController cell, int offset = 0) {
         if (cell == null) return null;
         var nextBlockIndex = currentBlock.cell.blocks.IndexOf(currentBlock) - (cell.z - currentBlock.cell.z - offset);
-        return nextBlockIndex < 0 || nextBlockIndex >= cell.blocks.Count ? null : cell.blocks[nextBlockIndex];
+        return cell.GetBlockByIndex(nextBlockIndex);
     }
 
     public static readonly int[][] LadderExits = {
@@ -177,34 +177,41 @@ public class MapController : ControllerBehaviour {
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
-
-        if (nextBlock == null) {
-            if (diagonal || !currentBlock.isLadder) return false;
+        if (currentBlock.isLadder) {
+            if (diagonal) return false;
             var ladderExits = GetLadderExits(currentBlock);
-            return (ladderExits[0] != null && GetBlockOnSameLevel(currentBlock, nextCell, 1) == ladderExits[0]) ||
-                   (ladderExits[1] != null && GetBlockOnSameLevel(currentBlock, nextCell, -1) == ladderExits[1]);
-        }
-
-        if (nextBlock == nextCell.lastBlock) {
-            if (nextBlock.isLadder) {
-                if (diagonal) return false;
-                if (currentBlock.isLadder && currentBlock.direction == nextBlock.direction) return true;
-                return GetLadderExits(nextBlock)[0] == currentBlock;
+            if (ladderExits[0] != null && nextCell == ladderExits[0].cell) {
+                nextBlock = ladderExits[0];
+            } else {
+                if (ladderExits[1] != null && nextCell == ladderExits[1].cell) {
+                    nextBlock = ladderExits[1];
+                } else {
+                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction;
+                }
             }
+        }
+        console.log(111);
+        if (nextBlock == null || nextBlock!=nextCell.lastBlock) {
+            nextBlock = GetBlockOnSameLevel(currentBlock, nextCell, 1);
+            if (nextBlock == null || diagonal) return false;
+            if (nextBlock.isLadder) {
+                return GetLadderExits(nextBlock)[1] == currentBlock;
+            }
+            return passBlowable && nextBlock.isBlowable;
+        }
+        if (nextBlock.isLadder) {
+            var ladderExits = GetLadderExits(nextBlock);
+            return ladderExits[0] == currentBlock || ladderExits[1] == currentBlock;
+        }
+        if (nextBlock.isFlat) {
             if (diagonal) {
                 var hCell = GetBlockOnSameLevel(currentBlock, cells[currentCell.y][nextCell.x]);
-                if (hCell == null || hCell!=hCell.cell.lastBlock) return false;
+                if (hCell == null || hCell != hCell.cell.lastBlock) return false;
                 var vCell = GetBlockOnSameLevel(currentBlock, cells[nextCell.y][currentCell.x]);
-                if (vCell == null || vCell!=vCell.cell.lastBlock || !hCell.isFlat || !vCell.isFlat || hCell.isLadder || vCell.isLadder) return false;
+                if (vCell == null || vCell != vCell.cell.lastBlock || !hCell.isFlat || !vCell.isFlat ||
+                    hCell.isLadder || vCell.isLadder) return false;
             }
-            return nextBlock.isFlat || (passBlowable && nextBlock.isBlowable);
-        }
-
-        var ladder = GetBlockOnSameLevel(currentBlock, nextCell, 1);
-        if (ladder == null) return false;
-        if (ladder.isLadder) {
-            if (diagonal) return false;
-            return GetLadderExits(ladder)[1] == currentBlock;
+            return true;
         }
         return passBlowable && nextBlock.isBlowable;
     }
@@ -236,13 +243,6 @@ public class MapController : ControllerBehaviour {
         return cells[(int) cellPosition.y][(int) cellPosition.x];
     }
 
-
-
-    ////////////////////////////////////////
-    ///
-    ///
-    ///
-    ///
     private void PutBlockIntoOpenList(List<PathBlock> open, List<PathBlock> closed, PathBlock currentBlock, CellController finish,
         int offsetX, int offsetY) {
         var nextCell = GetCell(currentBlock.block.cell.x + offsetX, currentBlock.block.cell.y + offsetY);

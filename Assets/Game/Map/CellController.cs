@@ -46,6 +46,11 @@ public class CellController : ControllerBehaviour {
         return blockController;
     }
 
+    public BlockController GetBlockByIndex(int index) {
+        if (index < 0 || index >= blocks.Count) return null;
+        return blocks[index];
+    }
+
     public void AddBlock(BlockController block) {
         blocks.Add(block);
         lastBlock = block;

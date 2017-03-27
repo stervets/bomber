@@ -11,6 +11,10 @@ public class BlockController : ControllerBehaviour {
     public bool isLadder;
     public bool isBlowable;
 
+    public int index {
+        get { return cell.blocks.IndexOf(this); }
+    }
+
     [HideInInspector] public CellController cell;
     [HideInInspector] public byte prefabIndex;
     [HideInInspector] public byte direction;
@@ -56,6 +60,9 @@ public class BlockController : ControllerBehaviour {
         }
     }
 
+    public BlockController GetBlockOnTop() {
+        return cell.GetBlockByIndex(index + 1);
+    }
 
     void OnMoveDown(params object[] args) {
         targetY = (float) args[0];

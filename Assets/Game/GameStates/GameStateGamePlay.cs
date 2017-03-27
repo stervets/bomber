@@ -35,8 +35,9 @@ public class GameStateGamePlay : StateBehaviour {
 		Destroy (map);
 	}
 
-    /*
+
     // Test isCellAvailToMove
+    /*
     private CellController cell;
     void Update() {
         if (Input.GetMouseButtonDown(0)) {
@@ -46,6 +47,7 @@ public class GameStateGamePlay : StateBehaviour {
             } else {
                 console.log(g.map.GetCellFromCamera(Input.mousePosition));
                 console.log(g.map.isCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition)));
+                console.log("blowable", g.map.isCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition), true)); // blowable
                 cell = null;
             }
         }
@@ -55,6 +57,7 @@ public class GameStateGamePlay : StateBehaviour {
 
 
     // Test FindPath
+
     private CellController cell;
 
     void ShowPath(List<BlockController> waypoints) {
@@ -80,5 +83,6 @@ public class GameStateGamePlay : StateBehaviour {
             }
         }
     }
+
 
 }
