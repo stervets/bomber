@@ -20,7 +20,7 @@ public abstract class ActorController : ControllerBehaviour {
     //protected CharacterController characterController;
 
     protected Vector3 direction;
-    protected Animator animator;
+    //protected Animator animator;
 
     protected void PlaceOnCell(CellController _cell) {
         oldCell = cell = _cell;
@@ -64,37 +64,18 @@ public abstract class ActorController : ControllerBehaviour {
         Trigger(Channel.Actor.StartMove);
     }
 
-    public List<Cell> getFreeCells(bool includeDiagonal = false) {
-        var cells = new List<Cell>();
-        /*
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, -1, 0)) {
-            cells.Add(g.map.cell[cell.x-1, cell.y]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, 1, 0)) {
-            cells.Add(g.map.cell[cell.x+1, cell.y]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, 0, -1)) {
-            cells.Add(g.map.cell[cell.x, cell.y-1]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, 0, 1)) {
-            cells.Add(g.map.cell[cell.x, cell.y+1]);
-        }
-
+    public List<CellController> getFreeCells(bool includeDiagonal = false) {
+        var cells = new List<CellController>();
+        BlockController block;
+        if ((block = g.map.GetBlockAvailToMove(cell, -1, 0)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, 1, 0)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, 0, -1)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, 0, 1)) != null) cells.Add(block.cell);
         if (!includeDiagonal) return cells;
-
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, -1, -1)) {
-            cells.Add(g.map.cell[cell.x-1, cell.y-1]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, 1, 1)) {
-            cells.Add(g.map.cell[cell.x+1, cell.y+1]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, -1, 1)) {
-            cells.Add(g.map.cell[cell.x-1, cell.y+1]);
-        }
-        if (g.map.isCellOffsetAvailToMove(cell.x, cell.y, 1, -1)) {
-            cells.Add(g.map.cell[cell.x+1, cell.y-1]);
-        }
-        */
+        if ((block = g.map.GetBlockAvailToMove(cell, -1, -1)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, 1, 1)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, -1, 1)) != null) cells.Add(block.cell);
+        if ((block = g.map.GetBlockAvailToMove(cell, 1, -1)) != null) cells.Add(block.cell);
         return cells;
     }
 

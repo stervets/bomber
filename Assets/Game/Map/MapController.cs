@@ -36,9 +36,9 @@ public class MapController : ControllerBehaviour {
         width = _width;
         height = _height;
         cells = new List<List<CellController>>();
-        for (int y = 0; y < height; y++) {
+        for (var y = 0; y < height; y++) {
             cells.Add(new List<CellController>());
-            for (int x = 0; x < width; x++) {
+            for (var x = 0; x < width; x++) {
                 var cell = Instantiate(cellPrefab);
                 cell.transform.parent = transform;
                 var cellController = cell.GetComponent<CellController>();
@@ -172,13 +172,13 @@ public class MapController : ControllerBehaviour {
         };
     }
 
-    public bool isCellAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
-        if (nextCell == null) return false;
+    public BlockController GetBlockAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
+        if (nextCell == null) return null;
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
         if (currentBlock.isLadder) {
-            if (diagonal) return false;
+            if (diagonal) return null;
             var ladderExits = GetLadderExits(currentBlock);
             if (ladderExits[0] != null && nextCell == ladderExits[0].cell) {
                 nextBlock = ladderExits[0];
@@ -186,35 +186,49 @@ public class MapController : ControllerBehaviour {
                 if (ladderExits[1] != null && nextCell == ladderExits[1].cell) {
                     nextBlock = ladderExits[1];
                 } else {
-                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction;
+                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction ? nextBlock : null;
                 }
             }
         }
-        console.log(111);
         if (nextBlock == null || nextBlock!=nextCell.lastBlock) {
             nextBlock = GetBlockOnSameLevel(currentBlock, nextCell, 1);
-            if (nextBlock == null || diagonal) return false;
+            if (nextBlock == null || diagonal) return null;
             if (nextBlock.isLadder) {
-                return GetLadderExits(nextBlock)[1] == currentBlock;
+                return GetLadderExits(nextBlock)[1] == currentBlock ? nextBlock : null;
             }
-            return passBlowable && nextBlock.isBlowable;
+            return passBlowable && nextBlock.isBlowable ? nextBlock : null;
         }
         if (nextBlock.isLadder) {
             var ladderExits = GetLadderExits(nextBlock);
-            return ladderExits[0] == currentBlock || ladderExits[1] == currentBlock;
+            return ladderExits[0] == currentBlock || ladderExits[1] == currentBlock ? nextBlock : null;
         }
         if (nextBlock.isFlat) {
             if (diagonal) {
                 var hCell = GetBlockOnSameLevel(currentBlock, cells[currentCell.y][nextCell.x]);
-                if (hCell == null || hCell != hCell.cell.lastBlock) return false;
+                if (hCell == null || hCell != hCell.cell.lastBlock) return null;
                 var vCell = GetBlockOnSameLevel(currentBlock, cells[nextCell.y][currentCell.x]);
                 if (vCell == null || vCell != vCell.cell.lastBlock || !hCell.isFlat || !vCell.isFlat ||
-                    hCell.isLadder || vCell.isLadder) return false;
+                    hCell.isLadder || vCell.isLadder) return null;
             }
-            return true;
+            return nextBlock;
         }
-        return passBlowable && nextBlock.isBlowable;
+        return passBlowable && nextBlock.isBlowable ? nextBlock : null;
     }
+
+    public bool IsCellAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
+        return GetBlockAvailToMove(currentCell, nextCell, passBlowable) != null;
+    }
+
+
+    public BlockController GetBlockAvailToMove(CellController currentCell, int offsetX, int offsetY, bool passBlowable = false) {
+        var nextCell = GetCell(currentCell.x + offsetX, currentCell.y + offsetY);
+        return nextCell == null ? null : GetBlockAvailToMove(currentCell, nextCell, passBlowable);
+    }
+
+    public bool IsCellAvailToMove(CellController currentCell, int offsetX, int offsetY, bool passBlowable = false) {
+        return GetBlockAvailToMove(currentCell, offsetX, offsetY, passBlowable) != null;
+    }
+
 
     private LayerMask mapLayer;
     private RaycastHit hit;
@@ -246,7 +260,7 @@ public class MapController : ControllerBehaviour {
     private void PutBlockIntoOpenList(List<PathBlock> open, List<PathBlock> closed, PathBlock currentBlock, CellController finish,
         int offsetX, int offsetY) {
         var nextCell = GetCell(currentBlock.block.cell.x + offsetX, currentBlock.block.cell.y + offsetY);
-        if (nextCell == null || !isCellAvailToMove(currentBlock.block.cell, nextCell)) return;
+        if (nextCell == null || !IsCellAvailToMove(currentBlock.block.cell, nextCell)) return;
 
         var g = currentBlock.g + (currentBlock.block.cell.x != nextCell.x && currentBlock.block.cell.y != nextCell.y ? 141f : 100f);
         var h = GetDistance(nextCell, finish);
