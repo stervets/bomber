@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ActorController : ControllerBehaviour {
+public abstract class ActorBehaviour : ControllerBehaviour {
     //protected InputBehaviour _input;
     //public abstract InputBehaviour input { get; }
 
@@ -32,6 +32,10 @@ public abstract class ActorController : ControllerBehaviour {
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
         On(Channel.Actor.Fire, OnFire);
+    }
+
+    protected override void OnAwake(params object[] args) {
+        PlaceOnCell(g.map.GetCellFromReal(transform.position));
     }
 
     private Vector3 realWaypoint;

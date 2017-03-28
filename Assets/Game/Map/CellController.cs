@@ -29,8 +29,9 @@ public class CellController : ControllerBehaviour {
     }
 
     public void SetItem(CellItem _item) {
+        var oldItem = item;
         item = _item;
-        g.map.Trigger(Channel.Map.SetCellItem, this, item);
+        g.map.Trigger(Channel.Map.SetCellItem, this, oldItem);
     }
 
     public void ChangeZ(int offset) {

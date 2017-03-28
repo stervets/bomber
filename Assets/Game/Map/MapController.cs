@@ -21,6 +21,11 @@ public class MapController : ControllerBehaviour {
     public GameObject debugCubePrefab;
     public GameObject[] blockPrefabs;
 
+    public GameObject[] actorPrefabs;
+    public Dictionary<string, GameObject> actorPrefabsDictionary;
+
+    public Dictionary<CellItem, List<CellController>> cellItems;
+
     public void DestroyField() {
         if (cells == null) return;
         while (cells.Count > 0) {
@@ -85,7 +90,34 @@ public class MapController : ControllerBehaviour {
         return Quaternion.AngleAxis(direction * 90, Vector3.up);
     }
 
+    void OnSetCellItem(params object[] args) {
+        var cell = (CellController) args[0];
+        var oldItem = (CellItem) args[1];
+
+        if (cell.item!=CellItem.Null && !cellItems.ContainsKey(cell.item)) {
+            cellItems[cell.item] = new List<CellController>();
+            console.log("created key ", cell.item);
+        }
+        if (oldItem != CellItem.Null) {
+            cellItems[oldItem].Remove(cell);
+        }
+        if (cell.item != CellItem.Null) {
+            console.log("on set cell item", cell.item);
+            cellItems[cell.item].Add(cell);
+        }
+    }
+
     protected override void OnAwake(params object[] args) {
+        console.log("map controller awake");
+        cellItems = new Dictionary<CellItem, List<CellController>>();
+        actorPrefabsDictionary = new Dictionary<string, GameObject>();
+
+        On(Channel.Map.SetCellItem, OnSetCellItem);
+
+        foreach (var actorPrefab in actorPrefabs) {
+            console.log("ADD PREFAB", actorPrefab.name);
+            actorPrefabsDictionary[actorPrefab.name] = actorPrefab;
+        }
         mapLayer = LayerMask.GetMask("Map");
         g.map = this;
         Random.InitState(seed);
@@ -346,6 +378,12 @@ public class MapController : ControllerBehaviour {
             //.TakeUntilDestroy(g.c)
             .ObserveOnMainThread()
             .Subscribe(callback);
+    }
+
+    public void CreateActor(CellController cell, string prefabName, string controllerName) {
+        var actor = Instantiate(actorPrefabsDictionary[prefabName], cell.top, Quaternion.identity);
+        //actor.transform.parent = transform;
+        actor.AddComponent(Type.GetType(controllerName));
     }
 }
 

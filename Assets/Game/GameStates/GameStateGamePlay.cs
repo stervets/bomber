@@ -20,6 +20,7 @@ public class GameStateGamePlay : StateBehaviour {
 
     protected void OnMapLoaded(params object[] args) {
         console.log("map loaded");
+        g.map.CreateActor(g.map.cellItems[CellItem.PlayerRespawn][0], "player", "PlayerController");
     }
 
     protected override void OnEnabled(params object[] args) {
