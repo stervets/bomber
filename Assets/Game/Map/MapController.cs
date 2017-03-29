@@ -25,6 +25,7 @@ public class MapController : ControllerBehaviour {
     public Dictionary<string, GameObject> actorPrefabsDictionary;
 
     public Dictionary<CellItem, List<CellController>> cellItems;
+    public Dictionary<CellController, bool> obtacles;
 
     public void DestroyField() {
         if (cells == null) return;
@@ -41,6 +42,8 @@ public class MapController : ControllerBehaviour {
         width = _width;
         height = _height;
         cells = new List<List<CellController>>();
+        cellItems = new Dictionary<CellItem, List<CellController>>();
+        obtacles = new Dictionary<CellController, bool>();
         for (var y = 0; y < height; y++) {
             cells.Add(new List<CellController>());
             for (var x = 0; x < width; x++) {
@@ -50,6 +53,7 @@ public class MapController : ControllerBehaviour {
                 cellController.SetPosition(x, y);
                 //cellController.CreateBlock(0);
                 cells.Last().Add(cellController);
+                obtacles[cellController] = false;
             }
         }
     }
@@ -109,7 +113,6 @@ public class MapController : ControllerBehaviour {
 
     protected override void OnAwake(params object[] args) {
         console.log("map controller awake");
-        cellItems = new Dictionary<CellItem, List<CellController>>();
         actorPrefabsDictionary = new Dictionary<string, GameObject>();
 
         On(Channel.Map.SetCellItem, OnSetCellItem);
@@ -206,6 +209,7 @@ public class MapController : ControllerBehaviour {
 
     public BlockController GetBlockAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
         if (nextCell == null) return null;
+        if (!passBlowable && obtacles[nextCell]) return null;
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
@@ -383,6 +387,7 @@ public class MapController : ControllerBehaviour {
     public void CreateActor(CellController cell, string prefabName, string controllerName) {
         var actor = Instantiate(actorPrefabsDictionary[prefabName], cell.top, Quaternion.identity);
         //actor.transform.parent = transform;
+
         actor.AddComponent(Type.GetType(controllerName));
     }
 }

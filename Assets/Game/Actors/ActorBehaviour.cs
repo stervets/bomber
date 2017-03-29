@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class ActorBehaviour : ControllerBehaviour {
@@ -14,10 +15,10 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     public float speed;
     //private float squaredSpeed;
 
-    protected CellController waypoint;
-    protected List<CellController> waypoints;
+    protected BlockController waypoint;
+    protected List<BlockController> waypoints;
 
-    //protected CharacterController characterController;
+    protected CharacterController characterController;
 
     protected Vector3 direction;
     //protected Animator animator;
@@ -25,22 +26,20 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected void PlaceOnCell(CellController _cell) {
         oldCell = cell = _cell;
         transform.position = cell.top;
+        console.log("placed on cell",cell);
     }
 
     protected override void BeforeControllerAwake() {
-        //characterController = GetComponent<CharacterController>();
+        characterController = GetComponent<CharacterController>();
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
         On(Channel.Actor.Fire, OnFire);
-    }
-
-    protected override void OnAwake(params object[] args) {
         PlaceOnCell(g.map.GetCellFromReal(transform.position));
     }
 
     private Vector3 realWaypoint;
 
-    public void moveToNextCell(int offsetX, int offsetY, bool checkMapObstacles = true) {
+    public void moveToNextCell(int offsetX, int offsetY) {
         /*
         var nextCell = g.map.GetCell(cell.x + offsetX, cell.y + offsetY);
         if ((nextCell = (nextCell==null || !(checkMapObstacles && g.map.isCellOffsetAvailToMove(cell.x, cell.y, offsetX, offsetY)) ? null : nextCell))!=null) {
@@ -51,15 +50,15 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         */
     }
 
-    public void moveToCell(Cell targetCell) {
-        //g.map.FindPath(cell, targetCell, SetWaypoints);
+    public void moveToCell(CellController targetCell) {
+        g.map.FindPath(cell, targetCell, SetWaypoints);
     }
 
-    public void SetWaypoints(List<CellController> _waypoints) {
+    public void SetWaypoints(List<BlockController> _waypoints) {
         waypoints = _waypoints;
         if (waypoints.Count > 1) {
-            if (Vector3.SqrMagnitude(waypoints[1].top-transform.position)<
-                Vector3.SqrMagnitude(waypoints[1].top-waypoints[0].top)
+            if (Vector3.SqrMagnitude(waypoints[1].cell.top-transform.position)<
+                Vector3.SqrMagnitude(waypoints[1].cell.top-waypoints[0].cell.top)
             ) {
                 waypoints.RemoveAt(0);
             }
@@ -88,7 +87,15 @@ public abstract class ActorBehaviour : ControllerBehaviour {
             waypoint = waypoints[0];
             waypoints.RemoveAt(0);
 
-            realWaypoint = waypoint.top;
+            if (g.map.obtacles[waypoint.cell] && waypoints.Count > 0) {
+                waypoint = null;
+                g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints);
+                waypoints.Clear();
+                Trigger(Channel.Actor.FinishMove);
+                return;
+            }
+
+            realWaypoint = waypoint.cell.top;
             realWaypoint.y = transform.position.y;
 
             direction = (realWaypoint - transform.position).normalized;
@@ -107,7 +114,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
             if (Vector3.Dot(direction, realWaypoint - transform.position) <= 0) {
                 NextPoint();
             } else {
-                //characterController.Move(transform.forward * speed * Time.deltaTime);
+                characterController.Move(transform.forward * speed * Time.deltaTime);
                 cell = g.map.GetCellFromReal(transform.position);
                 if (cell != oldCell) {
                     gc.Trigger(Channel.Actor.ChangeLocation, cell, oldCell);

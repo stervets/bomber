@@ -58,7 +58,7 @@ public class GameStateGamePlay : StateBehaviour {
 
 
     // Test FindPath
-
+    /*
     private CellController cell;
 
     void ShowPath(List<BlockController> waypoints) {
@@ -84,6 +84,6 @@ public class GameStateGamePlay : StateBehaviour {
             }
         }
     }
-
+    */
 
 }
