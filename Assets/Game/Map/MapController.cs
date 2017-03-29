@@ -195,11 +195,10 @@ public class MapController : ControllerBehaviour {
         var exitBottom = LadderExits[Mathf.Clamp(ladderBlock.direction + 2, 0, 3)];
         var cell = GetCell(ladderBlock.cell.x + exitTop[0], ladderBlock.cell.y + exitTop[1]);
         var exitTopBlock = GetBlockOnSameLevel(ladderBlock, cell);
-        if (exitTopBlock == null) {
+
+        if (exitTopBlock == null || exitTopBlock.cell.lastBlock != exitTopBlock) {
             exitTopBlock = GetBlockOnSameLevel(ladderBlock, cell, 1);
-            if (exitTopBlock != null && exitTopBlock.isLadder) {
-                exitTopBlock = exitTopBlock.direction == ladderBlock.direction ? exitTopBlock : null;
-            }
+            exitTopBlock = exitTopBlock != null && exitTopBlock.isLadder && exitTopBlock.direction == ladderBlock.direction ? exitTopBlock : null;
         }
         return new[] {
             exitTopBlock,

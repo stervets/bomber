@@ -14,9 +14,13 @@ public class PlayerController : ActorBehaviour {
     //        SetCell(g.map.cell[6,5]);
     //  }
 
+    private CellController targetCell;
     void Update() {
         if (Input.GetMouseButtonDown(0)) {
-            moveToCell(g.map.GetCellFromCamera(Input.mousePosition));
+            targetCell = g.map.GetCellFromCamera(Input.mousePosition);
+            if (targetCell != cell) {
+                moveToCell(targetCell);
+            }
         }
         if (Input.GetKeyDown(KeyCode.Space)) {
             //cell.Blow(4);

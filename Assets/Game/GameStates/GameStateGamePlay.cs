@@ -47,15 +47,13 @@ public class GameStateGamePlay : StateBehaviour {
                 console.log(cell);
             } else {
                 console.log(g.map.GetCellFromCamera(Input.mousePosition));
-                console.log(g.map.isCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition)));
-                console.log("blowable", g.map.isCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition), true)); // blowable
+                console.log(g.map.IsCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition)));
+                console.log("blowable", g.map.IsCellAvailToMove(cell, g.map.GetCellFromCamera(Input.mousePosition), true)); // blowable
                 cell = null;
             }
         }
     }
     */
-
-
 
     // Test FindPath
     /*
