@@ -69,19 +69,22 @@ public static class Channel {
         MakeBlowCell,
         SetCellItem,
 
-        MoveBlockDown
+        MoveBlockDown,
+
+        SetObtacle,
+        RemoveObtacle
     }
 
     public enum Actor {
         StartMove,
         FinishMove,
         Fire,
-        ChangeLocation
+        BlowBomb
     }
 }
 
 public static class g {
-    public static readonly float FixedUpdateFrameRate = 1f / 30f; // default value == 0.02f
+    public static readonly float FixedUpdateFrameRate = 1f / 40f; // default value == 0.02f
 
     public static readonly string MapPath = "Assets/Maps/";
     public static readonly int NextBlowDelay = 5; // Задержка перед взрывом следующей клетки

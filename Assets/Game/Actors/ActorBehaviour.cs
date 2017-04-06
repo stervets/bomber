@@ -26,7 +26,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected void PlaceOnCell(CellController _cell) {
         oldCell = cell = _cell;
         transform.position = cell.top;
-        console.log("placed on cell",cell);
+        g.map.Trigger(Channel.Map.SetObtacle, this, cell);
     }
 
     protected override void BeforeControllerAwake() {
@@ -55,16 +55,16 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     }
 
     public void SetWaypoints(List<BlockController> _waypoints) {
-        waypoints = _waypoints;
-        if (waypoints.Count > 1) {
+        if (_waypoints.Count > 1) {
+            waypoints = _waypoints;
             if (Vector3.SqrMagnitude(waypoints[1].cell.top-transform.position)<
                 Vector3.SqrMagnitude(waypoints[1].cell.top-waypoints[0].cell.top)
             ) {
                 waypoints.RemoveAt(0);
             }
+            NextPoint();
+            Trigger(Channel.Actor.StartMove);
         }
-        NextPoint();
-        Trigger(Channel.Actor.StartMove);
     }
 
     public List<CellController> getFreeCells(bool includeDiagonal = false) {
@@ -87,7 +87,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
             waypoint = waypoints[0];
             waypoints.RemoveAt(0);
 
-            if (g.map.obtacles[waypoint.cell] && waypoints.Count > 0) {
+            if (cell!=waypoint.cell && g.map.obtacles[waypoint.cell]!=null && waypoints.Count > 0) {
                 waypoint = null;
                 g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints);
                 waypoints.Clear();
@@ -117,7 +117,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
                 characterController.Move(transform.forward * speed * Time.deltaTime);
                 cell = g.map.GetCellFromReal(transform.position);
                 if (cell != oldCell) {
-                    gc.Trigger(Channel.Actor.ChangeLocation, cell, oldCell);
+                    g.map.Trigger(Channel.Map.SetObtacle, this, cell, g.map.obtacles[oldCell].GetType() == GetType() ? oldCell : null);
                     oldCell = cell;
                 }
             }

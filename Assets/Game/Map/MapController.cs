@@ -22,10 +22,11 @@ public class MapController : ControllerBehaviour {
     public GameObject[] blockPrefabs;
 
     public GameObject[] actorPrefabs;
+    public GameObject bombPrefab;
     public Dictionary<string, GameObject> actorPrefabsDictionary;
 
     public Dictionary<CellItem, List<CellController>> cellItems;
-    public Dictionary<CellController, bool> obtacles;
+    public Dictionary<CellController, ControllerBehaviour> obtacles;
 
     public void DestroyField() {
         if (cells == null) return;
@@ -43,7 +44,7 @@ public class MapController : ControllerBehaviour {
         height = _height;
         cells = new List<List<CellController>>();
         cellItems = new Dictionary<CellItem, List<CellController>>();
-        obtacles = new Dictionary<CellController, bool>();
+        obtacles = new Dictionary<CellController, ControllerBehaviour>();
         for (var y = 0; y < height; y++) {
             cells.Add(new List<CellController>());
             for (var x = 0; x < width; x++) {
@@ -53,7 +54,7 @@ public class MapController : ControllerBehaviour {
                 cellController.SetPosition(x, y);
                 //cellController.CreateBlock(0);
                 cells.Last().Add(cellController);
-                obtacles[cellController] = false;
+                obtacles[cellController] = null;
             }
         }
     }
@@ -100,25 +101,34 @@ public class MapController : ControllerBehaviour {
 
         if (cell.item!=CellItem.Null && !cellItems.ContainsKey(cell.item)) {
             cellItems[cell.item] = new List<CellController>();
-            console.log("created key ", cell.item);
         }
         if (oldItem != CellItem.Null) {
             cellItems[oldItem].Remove(cell);
         }
         if (cell.item != CellItem.Null) {
-            console.log("on set cell item", cell.item);
             cellItems[cell.item].Add(cell);
         }
     }
 
+    void OnSetObtacle(params object[] args) {
+        if (args.Length > 2 && args[2]!=null) {
+            OnRemoveObtacle((CellController) args[2]);
+        }
+        obtacles[(CellController) args[1]] = (ControllerBehaviour) args[0];
+    }
+
+    void OnRemoveObtacle(params object[] args) {
+        obtacles[(CellController) args[0]] = null;
+    }
+
     protected override void OnAwake(params object[] args) {
-        console.log("map controller awake");
         actorPrefabsDictionary = new Dictionary<string, GameObject>();
 
         On(Channel.Map.SetCellItem, OnSetCellItem);
+        On(Channel.Map.SetObtacle, OnSetObtacle);
+        On(Channel.Map.RemoveObtacle, OnRemoveObtacle);
 
         foreach (var actorPrefab in actorPrefabs) {
-            console.log("ADD PREFAB", actorPrefab.name);
             actorPrefabsDictionary[actorPrefab.name] = actorPrefab;
         }
         mapLayer = LayerMask.GetMask("Map");
@@ -127,7 +137,7 @@ public class MapController : ControllerBehaviour {
     }
 
     protected override void OnStart(params object[] args) {
-        console.log("map controller started");
+        //console.log("map controller started");
     }
 
     public void importCells(string data) {
@@ -174,6 +184,7 @@ public class MapController : ControllerBehaviour {
         MakeField(ini.ReadValue("Map", "width", 0), ini.ReadValue("Map", "height", 0));
         importCells(ini.ReadValue("Map", "cells", ""));
         ini.Close();
+
         Trigger(Channel.Map.Loaded);
     }
 
@@ -208,7 +219,8 @@ public class MapController : ControllerBehaviour {
 
     public BlockController GetBlockAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
         if (nextCell == null) return null;
-        if (!passBlowable && obtacles[nextCell]) return null;
+        if (!passBlowable && obtacles[nextCell]!=null)return null;
+
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;

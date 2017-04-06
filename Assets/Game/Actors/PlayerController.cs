@@ -15,15 +15,19 @@ public class PlayerController : ActorBehaviour {
     //  }
 
     private CellController targetCell;
-    void Update() {
+
+    private int bombStrength = 3;
+
+    private void Update() {
         if (Input.GetMouseButtonDown(0)) {
             targetCell = g.map.GetCellFromCamera(Input.mousePosition);
             if (targetCell != cell) {
                 moveToCell(targetCell);
             }
         }
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            //cell.Blow(4);
+        if (Input.GetKeyDown(KeyCode.Space) && g.map.obtacles[cell].GetType() != typeof(BombController)) {
+            var bomb = Instantiate(g.map.bombPrefab, cell.top, Quaternion.identity).GetComponent<BombController>();
+            bomb.blow(3000, bombStrength);
         }
     }
 
