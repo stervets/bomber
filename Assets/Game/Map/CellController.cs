@@ -16,6 +16,19 @@ public class CellController : ControllerBehaviour {
     public Vector3 top;
     public BlockController lastBlock;
 
+    private Transform explosion;
+    private Transform sparkles;
+    private ParticleSystem explosionFX;
+    private ParticleSystem sparklesFX;
+
+    protected override void OnStart(params object[] args) {
+        explosion = transform.FindChild("ExplosionFX");
+        explosionFX = explosion.GetComponent<ParticleSystem> ();
+
+        sparkles = transform.FindChild("SparklesFX");
+        sparklesFX = sparkles.GetComponent<ParticleSystem> ();
+    }
+
     void CalculateTop() {
         top = transform.position + Vector3.up * blocks.Count;
     }
@@ -58,7 +71,7 @@ public class CellController : ControllerBehaviour {
         CalculateTop();
     }
 
-    public void RemoveBlock(byte index) {
+    public void RemoveBlock(int index) {
         var block = blocks[index];
         if (block != null) {
             Destroy(block.gameObject);
@@ -71,7 +84,7 @@ public class CellController : ControllerBehaviour {
     }
 
     public void RemoveBlock(BlockController block) {
-        RemoveBlock((byte)blocks.IndexOf(block));
+        RemoveBlock(blocks.IndexOf(block));
         lastBlock = blocks.Count > 0 ? blocks.Last() : null;
     }
 
@@ -98,5 +111,16 @@ public class CellController : ControllerBehaviour {
 
     public override string ToString() {
         return String.Format("cell[{0}, {1}, {2}]", x, y, z);
+    }
+
+
+    public void Blow(bool big, BlockController block = null) {
+        explosion.position = block == null ? top : transform.position + Vector3.up * block.index;
+        explosionFX.Play();
+        if (big) {
+            sparkles.position = explosion.position;
+            sparklesFX.Play();
+            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Remove();
+        }
     }
 }

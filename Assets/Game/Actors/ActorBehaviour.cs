@@ -33,7 +33,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         characterController = GetComponent<CharacterController>();
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
-        On(Channel.Actor.Fire, OnFire);
+        //On(Channel.Actor.Fire, OnFire);
         PlaceOnCell(g.map.GetCellFromReal(transform.position));
     }
 
@@ -69,6 +69,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
 
     public List<CellController> getFreeCells(bool includeDiagonal = false) {
         var cells = new List<CellController>();
+        /*
         BlockController block;
         if ((block = g.map.GetBlockAvailToMove(cell, -1, 0)) != null) cells.Add(block.cell);
         if ((block = g.map.GetBlockAvailToMove(cell, 1, 0)) != null) cells.Add(block.cell);
@@ -79,6 +80,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         if ((block = g.map.GetBlockAvailToMove(cell, 1, 1)) != null) cells.Add(block.cell);
         if ((block = g.map.GetBlockAvailToMove(cell, -1, 1)) != null) cells.Add(block.cell);
         if ((block = g.map.GetBlockAvailToMove(cell, 1, -1)) != null) cells.Add(block.cell);
+        */
         return cells;
     }
 
@@ -125,9 +127,11 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         OnFixedUpdate();
     }
 
+    /*
     public void Fire() {
         Trigger(Channel.Actor.Fire);
     }
+    */
 
     protected virtual void OnFixedUpdate() {
     }
@@ -138,7 +142,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     protected virtual void OnFinishMove(params object[] args) {
     }
 
+    /*
     protected virtual void OnFire(params object[] args) {
     }
-
+    */
 }

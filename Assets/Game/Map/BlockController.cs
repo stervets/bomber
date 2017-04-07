@@ -42,7 +42,7 @@ public class BlockController : ControllerBehaviour {
     }
 
     public void Remove() {
-        Debug.Log(cell);
+        //Debug.Log(cell);
         cell.RemoveBlock(this);
     }
 
@@ -81,6 +81,12 @@ public class BlockController : ControllerBehaviour {
             prefabIndex = i;
             break;
         }
+    }
+
+
+    public void Blow() {
+        cell.Blow(true, this);
+        Remove();
     }
 
     public override String ToString() {

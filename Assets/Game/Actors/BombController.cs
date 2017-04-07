@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BombController : ControllerBehaviour {
     private CellController cell;
-    private int strength;
+    private int power;
 
     protected override void OnAwake(params object[] args) {
         On(Channel.Actor.BlowBomb, OnBlowBomb);
@@ -12,7 +12,7 @@ public class BombController : ControllerBehaviour {
 
     void OnBlowBomb(params object[] args) {
         g.map.Trigger(Channel.Map.RemoveObtacle, cell);
-        cell.Trigger(Channel.Map.BlowCell, strength);
+        g.map.Blow(cell, power);
         Destroy(gameObject);
     }
 
@@ -22,8 +22,8 @@ public class BombController : ControllerBehaviour {
         g.map.Trigger(Channel.Map.SetObtacle, this, cell);
     }
 
-    public void blow(int delay = 0, int _strength = 1) {
-        strength = _strength;
+    public void SetTimer(int delay = 0, int _power = 1) {
+        power = _power;
         Trigger(delay, Channel.Actor.BlowBomb);
     }
 }

@@ -6,7 +6,7 @@ public class PlayerController : ActorBehaviour {
     private Animator animator;
     protected override void OnAwake(params object[] args) {
         speed = 3.5f;
-        //ListenTo(g.c, Channel.Map.Loaded, OnMapLoaded);
+        ListenTo(g.c, Channel.Actor.SetPlayerBomb, SetPlayerBomb);
         animator = GetComponent<Animator>();
     }
 
@@ -16,18 +16,22 @@ public class PlayerController : ActorBehaviour {
 
     private CellController targetCell;
 
-    private int bombStrength = 3;
+    private int bombPower = 1;
+
+    protected void SetPlayerBomb(params object[] args) {
+        var bomb = Instantiate(g.map.bombPrefab, cell.top, Quaternion.identity).GetComponent<BombController>();
+        bomb.SetTimer(2000, bombPower);
+    }
 
     private void Update() {
-        if (Input.GetMouseButtonDown(0)) {
+        if (Input.GetMouseButtonDown(0) && Input.mousePosition.x>=g.camera.pixelRect.x) {
             targetCell = g.map.GetCellFromCamera(Input.mousePosition);
             if (targetCell != cell) {
                 moveToCell(targetCell);
             }
         }
         if (Input.GetKeyDown(KeyCode.Space) && g.map.obtacles[cell].GetType() != typeof(BombController)) {
-            var bomb = Instantiate(g.map.bombPrefab, cell.top, Quaternion.identity).GetComponent<BombController>();
-            bomb.blow(3000, bombStrength);
+            SetPlayerBomb();
         }
     }
 

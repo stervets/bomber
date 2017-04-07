@@ -66,7 +66,6 @@ public static class Channel {
         SetCellParams,
 
         BlowCell,
-        MakeBlowCell,
         SetCellItem,
 
         MoveBlockDown,
@@ -78,8 +77,8 @@ public static class Channel {
     public enum Actor {
         StartMove,
         FinishMove,
-        Fire,
-        BlowBomb
+        BlowBomb,
+        SetPlayerBomb
     }
 }
 

@@ -127,6 +127,7 @@ public class MapController : ControllerBehaviour {
         On(Channel.Map.SetCellItem, OnSetCellItem);
         On(Channel.Map.SetObtacle, OnSetObtacle);
         On(Channel.Map.RemoveObtacle, OnRemoveObtacle);
+        On(Channel.Map.BlowCell, OnBlowCell);
 
         foreach (var actorPrefab in actorPrefabs) {
             actorPrefabsDictionary[actorPrefab.name] = actorPrefab;
@@ -217,15 +218,14 @@ public class MapController : ControllerBehaviour {
         };
     }
 
-    public BlockController GetBlockAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
-        if (nextCell == null) return null;
-        if (!passBlowable && obtacles[nextCell]!=null)return null;
-
+    public bool IsCellAvailToMove(CellController currentCell, CellController nextCell, bool blowBlock = false) {
+        if (nextCell == null) return false;
+        if (!blowBlock && obtacles[nextCell]!=null)return false;
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
         if (currentBlock.isLadder) {
-            if (diagonal) return null;
+            if (diagonal) return false;
             var ladderExits = GetLadderExits(currentBlock);
             if (ladderExits[0] != null && nextCell == ladderExits[0].cell) {
                 nextBlock = ladderExits[0];
@@ -233,49 +233,45 @@ public class MapController : ControllerBehaviour {
                 if (ladderExits[1] != null && nextCell == ladderExits[1].cell) {
                     nextBlock = ladderExits[1];
                 } else {
-                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction ? nextBlock : null;
+                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction;
                 }
             }
         }
         if (nextBlock == null || nextBlock!=nextCell.lastBlock) {
             nextBlock = GetBlockOnSameLevel(currentBlock, nextCell, 1);
-            if (nextBlock == null || diagonal) return null;
+            if (nextBlock == null || diagonal) return false;
             if (nextBlock.isLadder) {
-                return GetLadderExits(nextBlock)[1] == currentBlock ? nextBlock : null;
+                return GetLadderExits(nextBlock)[1] == currentBlock;
             }
-            return passBlowable && nextBlock.isBlowable ? nextBlock : null;
+            if (blowBlock && nextBlock.isBlowable) {
+                nextBlock.Blow();
+            }
+            return false;
         }
         if (nextBlock.isLadder) {
             var ladderExits = GetLadderExits(nextBlock);
-            return ladderExits[0] == currentBlock || ladderExits[1] == currentBlock ? nextBlock : null;
+            return ladderExits[0] == currentBlock || ladderExits[1] == currentBlock;
         }
         if (nextBlock.isFlat) {
             if (diagonal) {
                 var hCell = GetBlockOnSameLevel(currentBlock, cells[currentCell.y][nextCell.x]);
-                if (hCell == null || hCell != hCell.cell.lastBlock) return null;
+                if (hCell == null || hCell != hCell.cell.lastBlock) return false;
                 var vCell = GetBlockOnSameLevel(currentBlock, cells[nextCell.y][currentCell.x]);
                 if (vCell == null || vCell != vCell.cell.lastBlock || !hCell.isFlat || !vCell.isFlat ||
-                    hCell.isLadder || vCell.isLadder) return null;
+                    hCell.isLadder || vCell.isLadder) return false;
             }
-            return nextBlock;
+            return true;
         }
-        return passBlowable && nextBlock.isBlowable ? nextBlock : null;
+        if (blowBlock && nextBlock.isBlowable) {
+            nextBlock.Blow();
+        }
+        return false;
     }
 
-    public bool IsCellAvailToMove(CellController currentCell, CellController nextCell, bool passBlowable = false) {
-        return GetBlockAvailToMove(currentCell, nextCell, passBlowable) != null;
-    }
-
-
-    public BlockController GetBlockAvailToMove(CellController currentCell, int offsetX, int offsetY, bool passBlowable = false) {
+    public bool IsCellAvailToMove(CellController currentCell, int offsetX, int offsetY, bool blowBlock = false) {
         var nextCell = GetCell(currentCell.x + offsetX, currentCell.y + offsetY);
-        return nextCell == null ? null : GetBlockAvailToMove(currentCell, nextCell, passBlowable);
+        return nextCell != null && IsCellAvailToMove(currentCell, nextCell, blowBlock);
     }
-
-    public bool IsCellAvailToMove(CellController currentCell, int offsetX, int offsetY, bool passBlowable = false) {
-        return GetBlockAvailToMove(currentCell, offsetX, offsetY, passBlowable) != null;
-    }
-
 
     private LayerMask mapLayer;
     private RaycastHit hit;
@@ -400,6 +396,47 @@ public class MapController : ControllerBehaviour {
         //actor.transform.parent = transform;
 
         actor.AddComponent(Type.GetType(controllerName));
+    }
+
+    public void Blow(CellController cell, int power) {
+        Trigger(Channel.Map.BlowCell, cell, power);
+    }
+
+    void CheckAndBlowNextCell(CellController currentCell, int power, int directionX, int directionY) {
+        var nextCell = GetCell(currentCell.x + directionX, currentCell.y + directionY);
+        if (nextCell != null && IsCellAvailToMove(currentCell, nextCell, true)) {
+            OnBlowCell(nextCell, power, directionX, directionY);
+        }
+    }
+
+    void OnBlowCell(params object[] args) {
+        // [0] cell
+        // [1] power
+        // [2] int directionX
+        // [3] int directionY
+        var cell = (CellController) args[0];
+        var power = (int) args[1] - 1;
+
+        var length = args.Length;
+
+        var directionX = length > 2 ? (int) args[2] : 0;
+        var directionY = length > 3 ? (int) args[3] : 0;
+        var blowInitializer = directionX + directionY == 0;
+
+        Observable.Timer(TimeSpan.FromMilliseconds(blowInitializer ? 0 : g.NextBlowDelay))
+            .Subscribe(_ => {
+                if (power >= 0) {
+                    if (blowInitializer) {
+                        CheckAndBlowNextCell(cell, power, 0, -1);
+                        CheckAndBlowNextCell(cell, power, 1, 0);
+                        CheckAndBlowNextCell(cell, power, 0, 1);
+                        CheckAndBlowNextCell(cell, power, -1, 0);
+                    } else {
+                        CheckAndBlowNextCell(cell, power, directionX, directionY);
+                    }
+                }
+                cell.Blow(blowInitializer);
+            });
     }
 }
 
