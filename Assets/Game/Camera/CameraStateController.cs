@@ -6,38 +6,34 @@ public class CameraStateController : StateControllerBehaviour {
     protected override void OnAwake(params object[] args) {
         SetDefaultState(State.Default);
     }
-    /*
-    Vector3 cameraPosition;
-    Vector3 cleanPosition;
-    Vector3 targetPosition;
-    //Vector3 main
+    private ControllerBehaviour target;
 
-    float distance;
+    private Vector3 targetLookPosition;
+    private Vector3 targetPosition;
+    private const float speed = 4.5f;
+
+    readonly Vector3 cameraOffset = new Vector3(-0.2f, 7f, -2f);
 
     protected override void OnStart(params object[] args) {
-        cleanPosition = cameraPosition = transform.position;
-        ListenTo (g.c, Channel.Map.MakeBlowCell, OnMakeBlowCell);
+        ListenTo(g.c, Channel.Camera.SetTarget, SetTarget);
     }
 
-    void OnMakeBlowCell(params object[] args){
-        cleanPosition = cameraPosition = transform.position;
-        cleanPosition -= (((Vector3)args [0]) - cleanPosition).normalized * 0.25f;
-    }
-
-    void FixedUpdate(){
-        distance = Vector3.Distance (cameraPosition, cleanPosition);
-
-        if (distance > 0.01f) {
-            cleanPosition = Vector3.Lerp (cleanPosition, cameraPosition, 0.1f);
-            distance /= 4;
-            transform.position = cleanPosition + Vector3.forward * Random.Range (-distance, distance) + Vector3.left * Random.Range (-distance, distance) + Vector3.up * Random.Range (-distance, distance);
-            //transform.position = cleanPosition;
+    protected void SetTarget(params object[] args) {
+        if (args[0] == null) {
+            target = null;
+        } else {
+            target = (ControllerBehaviour) args[0];
+            ListenTo(target, Channel.GameObject.Destroy, _=>target = null);
         }
-
-        //targetPosition += Vector3.left * 0.01f;
-        //cleanPosition += Vector3.left * 0.01f;
     }
-    */
 
+    void LateUpdate() {
+        if (target != null) {
+            targetLookPosition = Vector3.Lerp(targetLookPosition, target.transform.position, speed * Time.deltaTime);
+            targetPosition = targetLookPosition + cameraOffset;
+            transform.position = Vector3.Lerp(transform.position, targetPosition, speed * Time.deltaTime);
+            transform.LookAt(targetLookPosition);
+        }
+    }
 
 }

@@ -119,7 +119,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
                 characterController.Move(transform.forward * speed * Time.deltaTime);
                 cell = g.map.GetCellFromReal(transform.position);
                 if (cell != oldCell) {
-                    g.map.Trigger(Channel.Map.SetObtacle, this, cell, g.map.obtacles[oldCell].GetType() == GetType() ? oldCell : null);
+                    g.map.Trigger(Channel.Map.SetObtacle, this, cell, g.map.obtacles[oldCell]!=null && g.map.obtacles[oldCell].GetType() == GetType() ? oldCell : null);
                     oldCell = cell;
                 }
             }

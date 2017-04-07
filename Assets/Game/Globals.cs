@@ -80,6 +80,10 @@ public static class Channel {
         BlowBomb,
         SetPlayerBomb
     }
+
+    public enum Camera {
+        SetTarget
+    }
 }
 
 public static class g {

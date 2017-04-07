@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraStateDefault : StateBehaviour {
+public class CameraStateGameplay : StateBehaviour {
     protected override void OnAwake(params object[] args) {
-        SetDefaultState(State.Default);
-	}
+        SetDefaultState(State.GamePlay);
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,9 +11,9 @@ public class PlayerController : ActorBehaviour {
         animator = GetComponent<Animator>();
     }
 
-    //protected void OnMapLoaded(params object[] args) {
-    //        SetCell(g.map.cell[6,5]);
-    //  }
+    protected override void OnStart(params object[] args) {
+        g.c.Trigger(Channel.Camera.SetTarget, this);
+    }
 
     private CellController targetCell;
 

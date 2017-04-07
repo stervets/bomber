@@ -186,6 +186,7 @@ public class MapController : ControllerBehaviour {
         importCells(ini.ReadValue("Map", "cells", ""));
         ini.Close();
 
+        g.cameraController.SetState(State.GamePlay);
         Trigger(Channel.Map.Loaded);
     }
 
