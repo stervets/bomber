@@ -120,7 +120,7 @@ public class CellController : ControllerBehaviour {
         if (big) {
             sparkles.position = explosion.position;
             sparklesFX.Play();
-            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Blow(true);
+            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Blow();
         }
     }
 }

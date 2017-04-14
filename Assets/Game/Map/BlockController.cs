@@ -99,17 +99,14 @@ public class BlockController : ControllerBehaviour {
         renderer.material.SetFloat(BeautifulDissolves.DissolveHelper.dissolveAmountID, val);
     }
 
-    public void Blow(bool AnimationOnly = false) {
+    public void Blow() {
         cell.Blow(true, this);
         _collider.enabled = false;
         renderer.material = g.c.dissolveMaterial;
         LeanTween.value(LeanTween.tweenEmpty, SetDissolve, 0.25f, 0.75f, blowTime).setEase(LeanTweenType.easeInQuad);
-        //if (this == cell.lastBlock) {
-            LeanTween.moveY(gameObject, transform.position.y+0.5f, blowTime).setEase(LeanTweenType.easeInQuad);
-        //}
-        if (!AnimationOnly) {
-            Remove(blowTime);
-        }
+        LeanTween.moveY(gameObject, transform.position.y+0.5f, blowTime).setEase(LeanTweenType.easeInQuad);
+        Remove(blowTime);
+
     }
 
     public override String ToString() {
