@@ -19,6 +19,9 @@ public class BlockController : ControllerBehaviour {
     [HideInInspector] public byte prefabIndex;
     [HideInInspector] public byte direction;
 
+    private Collider _collider;
+    private Renderer renderer;
+
     public string export() {
         return string.Join(".", new string[]{
             prefabIndex.ToString(),
@@ -26,6 +29,7 @@ public class BlockController : ControllerBehaviour {
         });
     }
 
+    private readonly float blowTime = 0.3f;
 
     protected bool imported;
 
@@ -41,9 +45,9 @@ public class BlockController : ControllerBehaviour {
         transform.rotation = MapController.GetRotationFromDirection(direction);
     }
 
-    public void Remove() {
+    public void Remove(float removeTime = 0) {
         //Debug.Log(cell);
-        cell.RemoveBlock(this);
+        cell.RemoveBlock(this, removeTime);
     }
 
     private float targetY;
@@ -74,6 +78,13 @@ public class BlockController : ControllerBehaviour {
             On("MoveDown", OnMoveDown);
         }
 
+        _collider = GetComponent<Collider>();
+        renderer = GetComponent<Renderer>();
+
+        //renderer.material = g.c.dissolveMaterial;
+        //LeanTween.value(LeanTween.tweenEmpty, SetDissolve, 0.25f, 0.75f, blowTime).setEase(LeanTweenType.easeInQuad).setLoopCount(1000);
+
+
         if (imported)return;
         name = name.Substring(0, name.IndexOf('('));
         for (byte i = 0; i < g.map.blockPrefabs.Length; i++) {
@@ -83,10 +94,22 @@ public class BlockController : ControllerBehaviour {
         }
     }
 
+    void SetDissolve(float val) {
+        if (renderer == null) return;
+        renderer.material.SetFloat(BeautifulDissolves.DissolveHelper.dissolveAmountID, val);
+    }
 
-    public void Blow() {
+    public void Blow(bool AnimationOnly = false) {
         cell.Blow(true, this);
-        Remove();
+        _collider.enabled = false;
+        renderer.material = g.c.dissolveMaterial;
+        LeanTween.value(LeanTween.tweenEmpty, SetDissolve, 0.25f, 0.75f, blowTime).setEase(LeanTweenType.easeInQuad);
+        //if (this == cell.lastBlock) {
+            LeanTween.moveY(gameObject, transform.position.y+0.5f, blowTime).setEase(LeanTweenType.easeInQuad);
+        //}
+        if (!AnimationOnly) {
+            Remove(blowTime);
+        }
     }
 
     public override String ToString() {

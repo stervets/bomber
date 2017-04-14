@@ -71,10 +71,10 @@ public class CellController : ControllerBehaviour {
         CalculateTop();
     }
 
-    public void RemoveBlock(int index) {
+    public void RemoveBlock(int index, float destroyTime = 0) {
         var block = blocks[index];
         if (block != null) {
-            Destroy(block.gameObject);
+            Destroy(block.gameObject, destroyTime);
             blocks.RemoveAt(index);
             for (var i = index; i < blocks.Count; i++) {
                 blocks[i].Trigger((i-index)*50, "MoveDown", (float)i);
@@ -83,8 +83,8 @@ public class CellController : ControllerBehaviour {
         }
     }
 
-    public void RemoveBlock(BlockController block) {
-        RemoveBlock(blocks.IndexOf(block));
+    public void RemoveBlock(BlockController block, float destroyTime = 0) {
+        RemoveBlock(blocks.IndexOf(block), destroyTime);
         lastBlock = blocks.Count > 0 ? blocks.Last() : null;
     }
 
@@ -120,7 +120,7 @@ public class CellController : ControllerBehaviour {
         if (big) {
             sparkles.position = explosion.position;
             sparklesFX.Play();
-            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Remove();
+            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Blow(true);
         }
     }
 }
