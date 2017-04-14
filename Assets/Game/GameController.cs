@@ -1,11 +1,13 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class GameController : StateControllerBehaviour {
     public GameObject MapPrefab;
 
     //[HideInInspector] public Map map;
+    private Text debugText;
 
     protected override void Awake() {
         Time.fixedDeltaTime = g.FixedUpdateFrameRate;
@@ -22,12 +24,20 @@ public class GameController : StateControllerBehaviour {
         //Debug.Log("on controller start: " + this.ToString());
         g.camera = Camera.main;
         g.cameraController = g.camera.GetComponent<CameraStateController>();
+
+        debugText = GameObject.Find("DebugText").GetComponent<Text>();
     }
 
     void Update() {
         //Camera.main.transform.position = Camera.main.transform.position +
         //	(Vector3.left * (0.1f * Time.deltaTime));
     }
+
+    public void write(string str) {
+        debugText.text += str + "\n";
+    }
+
+
     /*
     public Cell GetCellFromCamera(Vector3 position) {
         RaycastHit hit;

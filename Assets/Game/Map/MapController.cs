@@ -176,18 +176,40 @@ public class MapController : ControllerBehaviour {
         ini.Close();
     }
 
-    public void loadFromFile(string _filename = "") {
-        if (_filename == "") {
-            _filename = filename;
-        }
+    public void loadINIFile(string data, bool loadFromFile = false) {
         var ini = new INIParser();
-        ini.Open(g.MapPath + _filename + ".ini");
+        if (loadFromFile) {
+            ini.Open(data);
+        } else {
+            ini.OpenFromString(data);
+        }
+
         MakeField(ini.ReadValue("Map", "width", 0), ini.ReadValue("Map", "height", 0));
         importCells(ini.ReadValue("Map", "cells", ""));
         ini.Close();
-
         g.cameraController.SetState(State.GamePlay);
         Trigger(Channel.Map.Loaded);
+    }
+
+    public void loadFromFile(string _filename = "") {
+        g.c.write("load from file");
+        if (_filename == "") {
+            _filename = filename;
+        }
+
+        var file = Application.streamingAssetsPath + g.MapPath + _filename + ".ini";
+
+
+        g.c.write(file);
+        if (file.IndexOf("jar:", StringComparison.Ordinal) == 0) {
+            g.c.write("get file via WWW");
+            ObservableWWW.Get(file).Subscribe(
+                    data => { loadINIFile(data); }, // onSuccess
+                    ex => { g.c.write(ex.Message); }); // onError
+        } else {
+            g.c.write("get file via local");
+            loadINIFile(file, true);
+        }
     }
 
     public BlockController GetBlockOnSameLevel(BlockController currentBlock, CellController cell, int offset = 0) {

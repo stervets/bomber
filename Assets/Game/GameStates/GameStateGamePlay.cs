@@ -19,11 +19,12 @@ public class GameStateGamePlay : StateBehaviour {
 	}
 
     protected void OnMapLoaded(params object[] args) {
-        console.log("map loaded");
+        g.c.write("map loaded");
         g.map.CreateActor(g.map.cellItems[CellItem.PlayerRespawn][0], "player", "PlayerController");
     }
 
     protected override void OnEnabled(params object[] args) {
+        g.c.write("game state enabled");
 	    map = Instantiate(gc.MapPrefab);
 	    ListenTo(g.map, Channel.GameObject.Start, objects => {
 	        g.map.loadFromFile();
