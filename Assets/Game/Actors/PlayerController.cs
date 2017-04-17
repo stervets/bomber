@@ -6,7 +6,7 @@ using UnityEngine;
 public class PlayerController : ActorBehaviour {
     private Animator animator;
     protected override void OnAwake(params object[] args) {
-        speed = 3.5f;
+        speed = 2.5f;
         ListenTo(g.c, Channel.Actor.SetPlayerBomb, SetPlayerBomb);
         animator = GetComponent<Animator>();
     }
@@ -17,7 +17,7 @@ public class PlayerController : ActorBehaviour {
 
     private CellController targetCell;
 
-    private int bombPower = 1;
+    private int bombPower = 5;
 
     protected void SetPlayerBomb(params object[] args) {
         var bomb = Instantiate(g.map.bombPrefab, cell.top, Quaternion.identity).GetComponent<BombController>();

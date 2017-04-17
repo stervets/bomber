@@ -59,6 +59,10 @@ public static class Channel {
         SetState
     }
 
+    public enum Block {
+        Blow
+    }
+
     public enum Map {
         Loading,
         Loaded,
@@ -90,7 +94,7 @@ public static class g {
     public static readonly float FixedUpdateFrameRate = 1f / 40f; // default value == 0.02f
 
     public static readonly string MapPath = "/maps/";
-    public static readonly int NextBlowDelay = 5; // Задержка перед взрывом следующей клетки
+    public static readonly int NextBlowDelay = 20; // Задержка перед взрывом следующей клетки
 
     public static GameController c;
     public static Camera camera;

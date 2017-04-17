@@ -8,8 +8,7 @@ public class GameStateAwake : StateBehaviour {
 	}
 
 	protected override void OnStart(params object[] args) {
-	    g.c.write("awake state");
-        gc.Trigger(0, Channel.Controller.SetState, State.GamePlay);
+	    gc.Trigger(0, Channel.Controller.SetState, State.GamePlay);
 	}
 
 	protected override void OnEnabled(params object[] args) {

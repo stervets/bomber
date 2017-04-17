@@ -33,8 +33,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
         characterController = GetComponent<CharacterController>();
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
-        //On(Channel.Actor.Fire, OnFire);
         PlaceOnCell(g.map.GetCellFromReal(transform.position));
+        transform.parent = g.map.gameObject.transform;
     }
 
     private Vector3 realWaypoint;

@@ -12,7 +12,7 @@ public class CameraStateController : StateControllerBehaviour {
     private Vector3 targetPosition;
     public Vector3 shakeFactor = Vector3.zero;
 
-    private const float speed = 4.5f;
+    private const float followSpeed = 5f;
 
     readonly Vector3 cameraOffset = new Vector3(-0.2f, 7f, -2f);
 
@@ -31,10 +31,10 @@ public class CameraStateController : StateControllerBehaviour {
 
     void LateUpdate() {
         if (target != null) {
-            targetLookPosition = Vector3.Lerp(targetLookPosition, target.transform.position, speed * Time.deltaTime) +
+            targetLookPosition = Vector3.Lerp(targetLookPosition, target.transform.position, followSpeed * Time.deltaTime) +
                                  shakeFactor;
             targetPosition = targetLookPosition + cameraOffset;
-            transform.position = Vector3.Lerp(transform.position, targetPosition, speed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
             transform.LookAt(targetLookPosition);
         }
     }

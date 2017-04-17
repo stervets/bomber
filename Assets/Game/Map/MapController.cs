@@ -169,7 +169,7 @@ public class MapController : ControllerBehaviour {
             _filename = filename;
         }
         var ini = new INIParser();
-        ini.Open(g.MapPath + _filename + ".ini");
+        ini.Open(Application.streamingAssetsPath + g.MapPath + _filename + ".ini");
         ini.WriteValue("Map", "width", width);
         ini.WriteValue("Map", "height", height);
         ini.WriteValue("Map", "cells", exportCells());
@@ -227,7 +227,7 @@ public class MapController : ControllerBehaviour {
 
     public BlockController[] GetLadderExits(BlockController ladderBlock) {
         var exitTop = LadderExits[ladderBlock.direction];
-        var exitBottom = LadderExits[Mathf.Clamp(ladderBlock.direction + 2, 0, 3)];
+        var exitBottom = LadderExits[(ladderBlock.direction + 2) % 4];
         var cell = GetCell(ladderBlock.cell.x + exitTop[0], ladderBlock.cell.y + exitTop[1]);
         var exitTopBlock = GetBlockOnSameLevel(ladderBlock, cell);
 
@@ -256,17 +256,25 @@ public class MapController : ControllerBehaviour {
                 if (ladderExits[1] != null && nextCell == ladderExits[1].cell) {
                     nextBlock = ladderExits[1];
                 } else {
-                    return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction;
+                    if (!blowBlock) {
+                        return nextBlock!=null && nextBlock.isLadder && currentBlock.direction == nextBlock.direction;
+                    }
                 }
             }
         }
         if (nextBlock == null || nextBlock!=nextCell.lastBlock) {
-            nextBlock = GetBlockOnSameLevel(currentBlock, nextCell, 1);
+            if (nextBlock != null && nextBlock != nextCell.lastBlock) {
+                nextBlock = nextBlock.GetBlockOnTop();
+            } else {
+                nextBlock = GetBlockOnSameLevel(currentBlock, nextCell, 1);
+            }
+
             if (nextBlock == null || diagonal) return false;
             if (nextBlock.isLadder) {
                 return GetLadderExits(nextBlock)[1] == currentBlock;
             }
             if (blowBlock && nextBlock.isBlowable) {
+                if (nextBlock.isBlowPass)return true;
                 nextBlock.Blow();
             }
             return false;
@@ -286,6 +294,7 @@ public class MapController : ControllerBehaviour {
             return true;
         }
         if (blowBlock && nextBlock.isBlowable) {
+            if (nextBlock.isBlowPass)return true;
             nextBlock.Blow();
         }
         return false;
