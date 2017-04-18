@@ -13,6 +13,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     private CellController oldCell;
 
     public float speed;
+
+    private const float gravity = 2f;
     //private float squaredSpeed;
 
     protected BlockController waypoint;
@@ -22,6 +24,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
 
     protected Vector3 direction;
     //protected Animator animator;
+
+    private Quaternion rotation;
 
     protected void PlaceOnCell(CellController _cell) {
         oldCell = cell = _cell;
@@ -57,11 +61,12 @@ public abstract class ActorBehaviour : ControllerBehaviour {
     public void SetWaypoints(List<BlockController> _waypoints) {
         if (_waypoints.Count > 1) {
             waypoints = _waypoints;
-            if (Vector3.SqrMagnitude(waypoints[1].cell.top-transform.position)<
-                Vector3.SqrMagnitude(waypoints[1].cell.top-waypoints[0].cell.top)
-            ) {
+
+            if (Vector3.Dot(waypoints[1].transform.position - waypoints[0].transform.position,
+                    transform.position - waypoints[0].transform.position)>0) {
                 waypoints.RemoveAt(0);
             }
+
             NextPoint();
             Trigger(Channel.Actor.StartMove);
         }
@@ -102,7 +107,7 @@ public abstract class ActorBehaviour : ControllerBehaviour {
 
             direction = (realWaypoint - transform.position).normalized;
             if (direction != Vector3.zero) {
-                transform.rotation = Quaternion.LookRotation(direction);
+                rotation = Quaternion.LookRotation(direction);
             }
         } else {
             waypoint = null;
@@ -116,7 +121,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
             if (Vector3.Dot(direction, realWaypoint - transform.position) <= 0) {
                 NextPoint();
             } else {
-                characterController.Move(transform.forward * speed * Time.deltaTime);
+                characterController.Move(direction * speed * Time.deltaTime);
+                //GetComponent<Rigidbody>().MovePosition(transform.position + transform.forward * speed * Time.deltaTime);
                 cell = g.map.GetCellFromReal(transform.position);
                 if (cell != oldCell) {
                     g.map.Trigger(Channel.Map.SetObtacle, this, cell, g.map.obtacles[oldCell]!=null && g.map.obtacles[oldCell].GetType() == GetType() ? oldCell : null);
@@ -124,6 +130,9 @@ public abstract class ActorBehaviour : ControllerBehaviour {
                 }
             }
         }
+        characterController.SimpleMove(Vector3.down * gravity * Time.deltaTime);
+
+        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 10f * Time.deltaTime);
         OnFixedUpdate();
     }
 

@@ -424,7 +424,7 @@ public class MapController : ControllerBehaviour {
     }
 
     public void CreateActor(CellController cell, string prefabName, string controllerName) {
-        var actor = Instantiate(actorPrefabsDictionary[prefabName], cell.top, Quaternion.identity);
+        var actor = Instantiate(actorPrefabsDictionary[prefabName], cell.top+Vector3.up*10f, Quaternion.identity);
         //actor.transform.parent = transform;
 
         actor.AddComponent(Type.GetType(controllerName));
