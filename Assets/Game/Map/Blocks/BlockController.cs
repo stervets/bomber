@@ -20,8 +20,8 @@ public class BlockController : ControllerBehaviour {
     [HideInInspector] public byte prefabIndex;
     [HideInInspector] public byte direction;
 
-    private Collider _collider;
-    private Renderer render;
+    protected Collider _collider;
+    protected Renderer render;
 
     public string export() {
         return string.Join(".", new string[]{
@@ -29,8 +29,6 @@ public class BlockController : ControllerBehaviour {
             direction.ToString()
         });
     }
-
-    private readonly float blowTime = 0.3f;
 
     protected bool imported;
 
@@ -74,17 +72,17 @@ public class BlockController : ControllerBehaviour {
         speed = 0.1f;
     }
 
-    protected override void OnStart(params object[] args) {
-        if ((cell = transform.parent.GetComponent<CellController>()) != null) {
+    public void SetParent(CellController _cell) {
+        if (cell == null) {
             On("MoveDown", OnMoveDown);
         }
+        cell = _cell;
+        transform.parent = cell.transform;
+    }
 
+    protected override void OnStart(params object[] args) {
         _collider = GetComponent<Collider>();
         render = GetComponent<Renderer>();
-
-        //renderer.material = g.c.dissolveMaterial;
-        //LeanTween.value(LeanTween.tweenEmpty, SetDissolve, 0.25f, 0.75f, blowTime).setEase(LeanTweenType.easeInQuad).setLoopCount(1000);
-
 
         if (imported)return;
         name = name.Substring(0, name.IndexOf('('));
@@ -95,25 +93,25 @@ public class BlockController : ControllerBehaviour {
         }
     }
 
-    void SetDissolve(float val) {
+    private void SetDissolve(float val) {
         if (render == null) return;
         render.material.SetFloat(BeautifulDissolves.DissolveHelper.dissolveAmountID, val);
     }
 
-    public void Blow() {
-        cell.Blow(true, this);
+    protected void Dissolve(float blowTime = 0) {
         _collider.enabled = false;
         render.material = g.c.dissolveMaterial;
         LeanTween.value(LeanTween.tweenEmpty, SetDissolve, 0.25f, 0.75f, blowTime).setEase(LeanTweenType.easeInQuad);
         LeanTween.moveY(gameObject, transform.position.y+0.5f, blowTime).setEase(LeanTweenType.easeInQuad);
-        OnBlow();
-        Remove(blowTime);
+        if (blowTime > 0) {
+            Remove(blowTime);
+        }
     }
 
-    protected virtual void OnBlow() {
+    public virtual void Blow(int directionX, int directionY) {
     }
 
-    public override String ToString() {
-        return String.Format("Block[{0},{1},{2}] flat:{3}, ladder:{4}, blowable:{5}", cell.x, cell.y, (int)transform.position.y, isFlat, isLadder, isBlowable);
+    public override string ToString() {
+        return string.Format("Block[{0},{1},{2}] flat:{3}, ladder:{4}, blowable:{5}", cell.x, cell.y, (int)transform.position.y, isFlat, isLadder, isBlowable);
     }
 }

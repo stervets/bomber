@@ -275,7 +275,7 @@ public class MapController : ControllerBehaviour {
             }
             if (blowBlock && nextBlock.isBlowable) {
                 if (nextBlock.isBlowPass)return true;
-                nextBlock.Blow();
+                nextBlock.Blow(nextCell.x - currentCell.x, nextCell.y - currentCell.y);
             }
             return false;
         }
@@ -295,7 +295,7 @@ public class MapController : ControllerBehaviour {
         }
         if (blowBlock && nextBlock.isBlowable) {
             if (nextBlock.isBlowPass)return true;
-            nextBlock.Blow();
+            nextBlock.Blow(nextCell.x - currentCell.x, nextCell.y - currentCell.y);
         }
         return false;
     }

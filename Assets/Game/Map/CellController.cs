@@ -54,7 +54,6 @@ public class CellController : ControllerBehaviour {
 
     public BlockController CreateBlock(byte index) {
         var block = Instantiate(g.map.blockPrefabs[index], MapController.GetRealPositionFromTable(x, y, z+blocks.Count), Quaternion.identity);
-        block.transform.parent = transform;
         var blockController = block.GetComponent<BlockController>();
         AddBlock(blockController);
         return blockController;
@@ -68,13 +67,16 @@ public class CellController : ControllerBehaviour {
     public void AddBlock(BlockController block) {
         blocks.Add(block);
         lastBlock = block;
+        block.SetParent(this);
         CalculateTop();
     }
 
     public void RemoveBlock(int index, float destroyTime = 0) {
         var block = blocks[index];
         if (block != null) {
-            Destroy(block.gameObject, destroyTime);
+            if (destroyTime >= 0) {
+                Destroy(block.gameObject, destroyTime);
+            }
             blocks.RemoveAt(index);
             for (var i = index; i < blocks.Count; i++) {
                 blocks[i].Trigger((i-index)*50, "MoveDown", (float)i);
@@ -120,7 +122,7 @@ public class CellController : ControllerBehaviour {
         if (big) {
             sparkles.position = explosion.position;
             sparklesFX.Play();
-            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Blow();
+            if (block==null && lastBlock != null && lastBlock.isBlowable) lastBlock.Blow(0, 0);
         }
     }
 }

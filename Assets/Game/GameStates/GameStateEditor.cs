@@ -106,17 +106,18 @@ public class GameStateEditor : StateBehaviour {
 
     protected void OnSetCellItem(params object[] args) {
         var cell = (CellController) args[0];
-        var cellItem = (CellItem) args[1];
+        //var cellItem = (CellItem) args[1];
         var gizmo = cell.transform.FindChild("EditorCellItem");
         if (gizmo != null) {
             Destroy(gizmo.gameObject);
         }
-        if (cellItem != CellItem.Null) {
+        if (cell.item != CellItem.Null) {
             var editorCellItem = Instantiate(g.map.editorCellItemPrefab);
+            console.log("instantiate");
             editorCellItem.transform.parent = cell.transform;
             editorCellItem.transform.localPosition = Vector3.up;
             editorCellItem.name = "EditorCellItem";
-            editorCellItem.GetComponent<EditorCellItem>().itemName = cellItem.ToString();
+            editorCellItem.GetComponent<EditorCellItem>().itemName = cell.item.ToString();
         }
     }
 

@@ -19,11 +19,11 @@ public class PlayerController : ActorBehaviour {
 
     private CellController targetCell;
 
-    private int bombPower = 5;
+    private const int bombPower = 2;
 
     protected void SetPlayerBomb(params object[] args) {
         var bomb = Instantiate(g.map.bombPrefab, cell.top, Quaternion.identity).GetComponent<BombController>();
-        bomb.SetTimer(2000, bombPower);
+        bomb.SetTimer(4000, bombPower);
     }
 
     //private float animSpeed = 1f;
