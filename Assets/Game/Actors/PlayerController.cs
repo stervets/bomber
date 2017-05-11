@@ -6,6 +6,8 @@ using UnityEngine;
 public class PlayerController : ActorBehaviour {
     private Animator animator;
     private float animatorFactor = 2.4f;
+    private GameObject clickPointer;
+    private ParticleSystem clickPointerParticle;
 
     protected override void OnAwake(params object[] args) {
         speed = 2.5f;
@@ -14,6 +16,8 @@ public class PlayerController : ActorBehaviour {
     }
 
     protected override void OnStart(params object[] args) {
+        clickPointer = Instantiate(g.c.clickPointerPrefab);
+        clickPointerParticle = clickPointer.GetComponent<ParticleSystem>();
         g.c.Trigger(Channel.Camera.SetTarget, this);
     }
 
@@ -48,6 +52,10 @@ public class PlayerController : ActorBehaviour {
     }
 
     protected override void OnStartMove(params object[] args) {
+        var cellController = args[0] as CellController;
+        if (cellController != null)
+            clickPointer.transform.position = cellController.top + Vector3.down * 0.49f;
+        clickPointerParticle.Play();
         animator.SetBool("Run", true);
         animator.speed = speed / animatorFactor;
     }

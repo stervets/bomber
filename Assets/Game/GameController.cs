@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class GameController : StateControllerBehaviour {
     public GameObject MapPrefab;
     public Material dissolveMaterial;
+    public GameObject clickPointerPrefab;
 
     //[HideInInspector] public Map map;
     private Text debugText;

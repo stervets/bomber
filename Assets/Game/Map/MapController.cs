@@ -313,7 +313,7 @@ public class MapController : ControllerBehaviour {
             return hit.collider.gameObject.GetComponentInParent<BlockController>().cell;
         }
         var rayLength = (-0.5f - Vector3.Dot(Vector3.up, ray.origin)) / Vector3.Dot(Vector3.up, ray.direction);
-        var cellPosition = Map.GetTablePositionFromReal(ray.origin + ray.direction * rayLength);
+        var cellPosition = GetTablePositionFromReal(ray.origin + ray.direction * rayLength);
         if (cellPosition.x < 0) {
             cellPosition.x = 0;
         } else {

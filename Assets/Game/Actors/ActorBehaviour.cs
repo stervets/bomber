@@ -67,8 +67,8 @@ public abstract class ActorBehaviour : ControllerBehaviour {
                 waypoints.RemoveAt(0);
             }
 
+            Trigger(Channel.Actor.StartMove, waypoints.Last().cell);
             NextPoint();
-            Trigger(Channel.Actor.StartMove);
         }
     }
 
@@ -122,7 +122,6 @@ public abstract class ActorBehaviour : ControllerBehaviour {
                 NextPoint();
             } else {
                 characterController.Move(direction * speed * Time.deltaTime);
-                //GetComponent<Rigidbody>().MovePosition(transform.position + transform.forward * speed * Time.deltaTime);
                 cell = g.map.GetCellFromReal(transform.position);
                 if (cell != oldCell) {
                     g.map.Trigger(Channel.Map.SetObtacle, this, cell, g.map.obtacles[oldCell]!=null && g.map.obtacles[oldCell].GetType() == GetType() ? oldCell : null);

@@ -1,10 +1,13 @@
 fileFormatVersion: 2
 guid: bf976f74a1bb84c7a989978586c26c54
-timeCreated: 1487541954
+timeCreated: 1494527362
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - cell: {instanceID: 0}
+  - clickPointerPrefab: {fileID: 1676283364380910, guid: ba9586f04175640febcd27a18fe0eb29,
+      type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
