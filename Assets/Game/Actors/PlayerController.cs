@@ -41,6 +41,7 @@ public class PlayerController : ActorBehaviour {
         if (Input.GetKeyDown(KeyCode.Space) && g.map.obtacles[cell].GetType() != typeof(BombController)) {
             SetPlayerBomb();
         }
+        /*
         if (Input.GetKeyDown(KeyCode.A)) {
             animatorFactor -= 0.01f;
             console.log(animatorFactor);
@@ -49,6 +50,7 @@ public class PlayerController : ActorBehaviour {
             animatorFactor += 0.01f;
             console.log(animatorFactor);
         }
+        */
     }
 
     protected override void OnStartMove(params object[] args) {

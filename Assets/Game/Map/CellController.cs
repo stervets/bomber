@@ -22,10 +22,10 @@ public class CellController : ControllerBehaviour {
     private ParticleSystem sparklesFX;
 
     protected override void OnStart(params object[] args) {
-        explosion = transform.FindChild("ExplosionFX");
+        explosion = transform.Find("ExplosionFX");
         explosionFX = explosion.GetComponent<ParticleSystem> ();
 
-        sparkles = transform.FindChild("SparklesFX");
+        sparkles = transform.Find("SparklesFX");
         sparklesFX = sparkles.GetComponent<ParticleSystem> ();
     }
 

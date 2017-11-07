@@ -26,6 +26,8 @@ public static class State {
     public static readonly int Awake = 1;
     public static readonly int GamePlay = 2;
     public static readonly int Editor = 3;
+    
+    public static readonly int SeekPlayer = 50;
 
     public enum Global {
     }
@@ -82,7 +84,9 @@ public static class Channel {
         StartMove,
         FinishMove,
         BlowBomb,
-        SetPlayerBomb
+        SetPlayerBomb,
+        
+        MoveToNextDirection
     }
 
     public enum Camera {

@@ -100,14 +100,14 @@ public class GameStateEditor : StateBehaviour {
     }
 
     protected override void OnStart(params object[] args) {
-        gizmosCamera = g.camera.transform.FindChild("GizmosCamera").gameObject;
-        blockPreviewContainer = gizmosCamera.transform.FindChild("PrefabPreview").gameObject;
+        gizmosCamera = g.camera.transform.Find("GizmosCamera").gameObject;
+        blockPreviewContainer = gizmosCamera.transform.Find("PrefabPreview").gameObject;
     }
 
     protected void OnSetCellItem(params object[] args) {
         var cell = (CellController) args[0];
         //var cellItem = (CellItem) args[1];
-        var gizmo = cell.transform.FindChild("EditorCellItem");
+        var gizmo = cell.transform.Find("EditorCellItem");
         if (gizmo != null) {
             Destroy(gizmo.gameObject);
         }

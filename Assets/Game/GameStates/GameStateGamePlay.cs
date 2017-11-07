@@ -20,6 +20,7 @@ public class GameStateGamePlay : StateBehaviour {
 
     protected void OnMapLoaded(params object[] args) {
         g.map.CreateActor(g.map.cellItems[CellItem.PlayerRespawn][0], "player", "PlayerController");
+        g.map.CreateActor(g.map.GetCell(0, 0), "knight", "EnemyController");
     }
 
     protected override void OnEnabled(params object[] args) {
