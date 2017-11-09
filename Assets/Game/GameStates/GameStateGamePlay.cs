@@ -3,39 +3,57 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class GameStateGamePlay : StateBehaviour {
-	//private GameController cc{get{return _controller as GameController;}}
+    //private GameController cc{get{return _controller as GameController;}}
 
-	private GameObject map;
+    private GameObject map;
 
-	protected override void OnAwake(params object[] args) {
-	    //Debug.Log("on state awake: " + this.ToString());
-	    SetDefaultState(State.GamePlay);
-	}
+    protected override void OnAwake(params object[] args) {
+        //Debug.Log("on state awake: " + this.ToString());
+        SetDefaultState(State.GamePlay);
+    }
 
-	protected override void OnStart(params object[] args) {
-	    //Debug.Log("on state start: " + this.ToString());
-	    //Debug.Log ("Game started");
-		//Map map = new Map ("test");
-	}
+    protected override void OnStart(params object[] args) {
+        //Debug.Log("on state start: " + this.ToString());
+        //Debug.Log ("Game started");
+        //Map map = new Map ("test");
+    }
 
     protected void OnMapLoaded(params object[] args) {
         g.map.CreateActor(g.map.cellItems[CellItem.PlayerRespawn][0], "player", "PlayerController");
+        
+        g.map.CreateActor(g.map.GetCell(2, 5), "knight", "EnemyController");
         g.map.CreateActor(g.map.GetCell(0, 0), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(2, 0), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(4, 1), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(4, 2), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(10, 8), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(5, 6), "knight", "EnemyController");
+        g.map.CreateActor(g.map.GetCell(3, 6), "knight", "EnemyController");
+        
     }
 
     protected override void OnEnabled(params object[] args) {
-	    map = Instantiate(gc.MapPrefab);
-	    ListenTo(g.map, Channel.GameObject.Start, objects => {
-	        g.map.loadFromFile();
-	    });
+        map = Instantiate(gc.MapPrefab);
+        ListenTo(g.map, Channel.GameObject.Start, objects => { g.map.loadFromFile(); });
 
-	    ListenTo(g.map, Channel.Map.Loaded, OnMapLoaded);
-	}
+        ListenTo(g.map, Channel.Map.Loaded, OnMapLoaded);
+    }
 
-	protected override void OnDisabled(params object[] args) {
-		Destroy (map);
-	}
+    protected override void OnDisabled(params object[] args) {
+        Destroy(map);
+    }
 
+    void OnDrawGizmos() {
+        Gizmos.color = new Color(0.94f, 0.91f, 0.19f);
+        foreach (var obtacle in g.map.obtacles) {
+            //console.log(k.Key);
+            if (obtacle.Value != null) {
+                
+                Gizmos.DrawCube(obtacle.Key.top, Vector3.one * .5f);    
+            }
+            
+        }
+    }
 
     // Test isCellAvailToMove
 /*
@@ -83,5 +101,4 @@ public class GameStateGamePlay : StateBehaviour {
         }
     }
     */
-
 }

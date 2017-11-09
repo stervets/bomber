@@ -3,22 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public abstract class ActorBehaviour : StateControllerBehaviour
-{
-    //protected InputBehaviour _input;
-    //public abstract InputBehaviour input { get; }
-
-    //protected InputController input;
-
+public abstract class ActorBehaviour : StateControllerBehaviour {
     public CellController cell;
-    private CellController oldCell;
-
     public float speed;
-
     private const float gravity = 2f;
-    //private float squaredSpeed;
 
-    protected BlockController waypoint;
+    private BlockController waypoint;
+    private CellController _waypointCell;
     protected List<BlockController> waypoints;
 
     protected CharacterController characterController;
@@ -32,15 +23,13 @@ public abstract class ActorBehaviour : StateControllerBehaviour
 
     private Quaternion rotation;
 
-    protected void PlaceOnCell(CellController _cell)
-    {
-        oldCell = cell = _cell;
+    protected void PlaceOnCell(CellController _cell) {
+        cell = _cell;
         transform.position = cell.top;
         g.map.Trigger(Channel.Map.SetObtacle, this, cell);
     }
 
-    protected override void BeforeControllerAwake()
-    {
+    protected override void BeforeControllerAwake() {
         characterController = GetComponent<CharacterController>();
         On(Channel.Actor.StartMove, OnStartMove);
         On(Channel.Actor.FinishMove, OnFinishMove);
@@ -48,119 +37,92 @@ public abstract class ActorBehaviour : StateControllerBehaviour
         transform.parent = g.map.gameObject.transform;
     }
 
-    private Vector3 realWaypoint;
-
-    public void moveToNextCell(int offsetX, int offsetY)
-    {
-        /*
-        var nextCell = g.map.GetCell(cell.x + offsetX, cell.y + offsetY);
-        if ((nextCell = (nextCell==null || !(checkMapObstacles && g.map.isCellOffsetAvailToMove(cell.x, cell.y, offsetX, offsetY)) ? null : nextCell))!=null) {
-            waypoints = new List<Cell> {nextCell};
-        }
-        NextPoint();
-        Trigger(Channel.Actor.StartMove);
-        */
-    }
-
-    public void moveToCell(CellController targetCell)
-    {
+    public void moveToCell(CellController targetCell) {
         g.map.FindPath(cell, targetCell, SetWaypoints);
     }
 
-    public void SetWaypoints(List<BlockController> _waypoints)
-    {
-        if (_waypoints.Count > 1)
-        {
+    public void SetWaypoints(List<BlockController> _waypoints) {
+        if (_waypoints.Count > 1) {
             waypoints = _waypoints;
-
+            
             if (Vector3.Dot(waypoints[1].transform.position - waypoints[0].transform.position,
-                    transform.position - waypoints[0].transform.position) > 0)
-            {
+                    transform.position - waypoints[0].transform.position) > 0) {
                 waypoints.RemoveAt(0);
             }
-
             Trigger(Channel.Actor.StartMove, waypoints.Last().cell);
             NextPoint();
         }
     }
 
-    public List<CellController> getFreeCells(bool includeDiagonal = false)
-    {
+    public List<CellController> getFreeCells(bool includeDiagonal = false) {
         var cells = new List<CellController>();
-
-        BlockController block;
-        if (g.map.IsCellAvailToMove(cell, -1, 0)) cells.Add(g.map.GetCell(cell.x - 1, cell.y));
-        if (g.map.IsCellAvailToMove(cell, +1, 0)) cells.Add(g.map.GetCell(cell.x + 1, cell.y));
-        if (g.map.IsCellAvailToMove(cell, 0, +1)) cells.Add(g.map.GetCell(cell.x, cell.y + 1));
-        if (g.map.IsCellAvailToMove(cell, 0, -1)) cells.Add(g.map.GetCell(cell.x, cell.y - 1));
+        if (g.map.IsCellAvailToMove(cell, -1, 0, false, true)) cells.Add(g.map.GetCell(cell.x - 1, cell.y));
+        if (g.map.IsCellAvailToMove(cell, +1, 0, false, true)) cells.Add(g.map.GetCell(cell.x + 1, cell.y));
+        if (g.map.IsCellAvailToMove(cell, 0, +1, false, true)) cells.Add(g.map.GetCell(cell.x, cell.y + 1));
+        if (g.map.IsCellAvailToMove(cell, 0, -1, false, true)) cells.Add(g.map.GetCell(cell.x, cell.y - 1));
         if (!includeDiagonal) return cells;
-        if (g.map.IsCellAvailToMove(cell, -1, -1)) cells.Add(g.map.GetCell(cell.x - 1, cell.y - 1));
-        if (g.map.IsCellAvailToMove(cell, -1, +1)) cells.Add(g.map.GetCell(cell.x - 1, cell.y + 1));
-        if (g.map.IsCellAvailToMove(cell, +1, +1)) cells.Add(g.map.GetCell(cell.x + 1, cell.y + 1));
-        if (g.map.IsCellAvailToMove(cell, +1, -1)) cells.Add(g.map.GetCell(cell.x + 1, cell.y - 1));
+        if (g.map.IsCellAvailToMove(cell, -1, -1, false, true)) cells.Add(g.map.GetCell(cell.x - 1, cell.y - 1));
+        if (g.map.IsCellAvailToMove(cell, -1, +1, false, true)) cells.Add(g.map.GetCell(cell.x - 1, cell.y + 1));
+        if (g.map.IsCellAvailToMove(cell, +1, +1, false, true)) cells.Add(g.map.GetCell(cell.x + 1, cell.y + 1));
+        if (g.map.IsCellAvailToMove(cell, +1, -1, false, true)) cells.Add(g.map.GetCell(cell.x + 1, cell.y - 1));
         return cells;
     }
 
-    void NextPoint()
-    {
-        if (waypoints.Count > 0)
-        {
+    void NextPoint() {
+        if (waypoints.Count > 0) {
             waypoint = waypoints[0];
             waypoints.RemoveAt(0);
 
-            if (cell != waypoint.cell && g.map.obtacles[waypoint.cell] != null && waypoints.Count > 0)
-            {
-                waypoint = null;
-                g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints);
-                waypoints.Clear();
-                Trigger(Channel.Actor.FinishMove);
-                return;
+            if (cell != waypoint.cell) {
+                if (g.map.obtacles[waypoint.cell] != null &&
+                    g.map.obtacles[waypoint.cell] != this) {
+                    _waypointCell = null;
+                    waypoints.Clear();
+                    Trigger(Channel.Actor.FinishMove);
+                    return;
+                }
+
+                g.map.Trigger(Channel.Map.SetObtacle, this, waypoint.cell,
+                    g.map.obtacles[cell] != null && g.map.obtacles[cell].GetType() == GetType()
+                        ? cell
+                        : null);
+                cell = waypoint.cell;
             }
-
-            realWaypoint = waypoint.cell.top;
-            realWaypoint.y = transform.position.y;
-
-            direction = (realWaypoint - transform.position).normalized;
+            else {
+                if (waypoints.Count == 0) {
+                    Trigger(Channel.Actor.FinishMove);
+                    return;
+                }
+            }
+            _waypointCell = waypoint.cell;
+            direction = Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up);
+            //TODO: проверить надо ли тут нормализованный вектор
+            //direction = Vector3.ProjectOnPlane(waypoint.cell.top - transform.position, Vector3.up).normalized;
+            
             directionX = (int) direction.x;
             directionY = (int) -direction.z;
 
-            if (direction != Vector3.zero)
-            {
+            if (direction != Vector3.zero) {
                 rotation = Quaternion.LookRotation(direction);
             }
         }
-        else
-        {
-            waypoint = null;
+        else {
+            _waypointCell = null;
             Trigger(Channel.Actor.FinishMove);
         }
     }
 
-    private void FixedUpdate()
-    {
-        if (waypoint != null)
-        {
-            // Здесь желательно учитывать кусочек перепройденного расстояния
-            if (Vector3.Dot(direction, realWaypoint - transform.position) <= 0)
-            {
+    private void FixedUpdate() {
+        if (_waypointCell != null) {
+            //if (GetType() == typeof(EnemyController)) console.log("fixed:", Vector3.Dot(direction, Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up)));
+            if (Vector3.Dot(direction, _waypointCell.top - transform.position) <= 0.001) {
                 NextPoint();
             }
-            else
-            {
+            else {
                 characterController.Move(direction * speed * Time.deltaTime);
-                cell = g.map.GetCellFromReal(transform.position);
-                if (cell != oldCell)
-                {
-                    g.map.Trigger(Channel.Map.SetObtacle, this, cell,
-                        g.map.obtacles[oldCell] != null && g.map.obtacles[oldCell].GetType() == GetType()
-                            ? oldCell
-                            : null);
-                    oldCell = cell;
-                }
             }
         }
         characterController.SimpleMove(Vector3.down * gravity * Time.deltaTime);
-
         transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 10f * Time.deltaTime);
         OnFixedUpdate();
     }
@@ -171,16 +133,13 @@ public abstract class ActorBehaviour : StateControllerBehaviour
     }
     */
 
-    protected virtual void OnFixedUpdate()
-    {
+    protected virtual void OnFixedUpdate() {
     }
 
-    protected virtual void OnStartMove(params object[] args)
-    {
+    protected virtual void OnStartMove(params object[] args) {
     }
 
-    protected virtual void OnFinishMove(params object[] args)
-    {
+    protected virtual void OnFinishMove(params object[] args) {
     }
 
     /*

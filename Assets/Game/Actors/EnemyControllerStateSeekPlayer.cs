@@ -47,7 +47,7 @@ public class EnemyControllerStateSeekPlayer : StateBehaviour
         On(Channel.Actor.MoveToNextDirection, GetRandomDirection);
     }
 
-    protected void MoveToDirection(params object[] args)
+    protected void MoveToDirection()
     {
         if (_directionX + _directionY == 0)
         {
@@ -55,7 +55,7 @@ public class EnemyControllerStateSeekPlayer : StateBehaviour
             return;
         }
 
-        if (Random.Range(0, 3) == 0 || !g.map.IsCellAvailToMove(cc.cell, _directionX, _directionY))
+        if (Random.Range(0, 3) == 0 || !g.map.IsCellAvailToMove(cc.cell, _directionX, _directionY, false, true))
         {
             GetRandomDirection();
         }

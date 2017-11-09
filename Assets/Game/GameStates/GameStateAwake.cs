@@ -9,6 +9,7 @@ public class GameStateAwake : StateBehaviour {
 
 	protected override void OnStart(params object[] args) {
 	    gc.Trigger(0, Channel.Controller.SetState, State.GamePlay);
+		//gc.Trigger(0, Channel.Controller.SetState, State.Editor);
 	}
 
 	protected override void OnEnabled(params object[] args) {

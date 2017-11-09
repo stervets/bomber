@@ -114,11 +114,14 @@ public class MapController : ControllerBehaviour {
         if (args.Length > 2 && args[2]!=null) {
             OnRemoveObtacle((CellController) args[2]);
         }
+        //console.log((CellController) args[1], (ControllerBehaviour) args[0]);
         obtacles[(CellController) args[1]] = (ControllerBehaviour) args[0];
     }
 
     void OnRemoveObtacle(params object[] args) {
-        obtacles[(CellController) args[0]] = null;
+        if (args[0] != null) {
+            obtacles[(CellController) args[0]] = null;    
+        }
     }
 
     protected override void OnAwake(params object[] args) {
@@ -241,9 +244,9 @@ public class MapController : ControllerBehaviour {
         };
     }
 
-    public bool IsCellAvailToMove(CellController currentCell, CellController nextCell, bool blowBlock = false) {
+    public bool IsCellAvailToMove(CellController currentCell, CellController nextCell, bool blowBlock = false, bool checkObtacles = false) {
         if (nextCell == null) return false;
-        if (!blowBlock && obtacles[nextCell]!=null)return false;
+        if (checkObtacles && !blowBlock && obtacles[nextCell]!=null)return false;
         var currentBlock = currentCell.lastBlock;
         var nextBlock = GetBlockOnSameLevel(currentBlock, nextCell);
         var diagonal = currentCell.x != nextCell.x && currentCell.y != nextCell.y;
@@ -300,9 +303,9 @@ public class MapController : ControllerBehaviour {
         return false;
     }
 
-    public bool IsCellAvailToMove(CellController currentCell, int offsetX, int offsetY, bool blowBlock = false) {
+    public bool IsCellAvailToMove(CellController currentCell, int offsetX, int offsetY, bool blowBlock = false, bool checkObtacles = false) {
         var nextCell = GetCell(currentCell.x + offsetX, currentCell.y + offsetY);
-        return nextCell != null && IsCellAvailToMove(currentCell, nextCell, blowBlock);
+        return nextCell != null && IsCellAvailToMove(currentCell, nextCell, blowBlock, checkObtacles);
     }
 
     private LayerMask mapLayer;
