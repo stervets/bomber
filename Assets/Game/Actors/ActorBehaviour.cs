@@ -44,7 +44,7 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
     public void SetWaypoints(List<BlockController> _waypoints) {
         if (_waypoints.Count > 1) {
             waypoints = _waypoints;
-            
+
             if (Vector3.Dot(waypoints[1].transform.position - waypoints[0].transform.position,
                     transform.position - waypoints[0].transform.position) > 0) {
                 waypoints.RemoveAt(0);
@@ -76,6 +76,11 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
             if (cell != waypoint.cell) {
                 if (g.map.obtacles[waypoint.cell] != null &&
                     g.map.obtacles[waypoint.cell] != this) {
+                    if (waypoints.Count > 0) {
+                        console.log("Find path");
+                        //TODO: здесь нужно триггерить свое собственное поведение для каждого класса актора
+                        g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints, true);
+                    }
                     _waypointCell = null;
                     waypoints.Clear();
                     Trigger(Channel.Actor.FinishMove);
@@ -95,10 +100,8 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
                 }
             }
             _waypointCell = waypoint.cell;
-            direction = Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up);
-            //TODO: проверить надо ли тут нормализованный вектор
-            //direction = Vector3.ProjectOnPlane(waypoint.cell.top - transform.position, Vector3.up).normalized;
-            
+            direction = Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up).normalized;
+
             directionX = (int) direction.x;
             directionY = (int) -direction.z;
 

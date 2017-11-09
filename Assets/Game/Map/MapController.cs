@@ -336,9 +336,9 @@ public class MapController : ControllerBehaviour {
     }
 
     private void PutBlockIntoOpenList(List<PathBlock> open, List<PathBlock> closed, PathBlock currentBlock, CellController finish,
-        int offsetX, int offsetY) {
+        int offsetX, int offsetY, bool checkObtacles = false) {
         var nextCell = GetCell(currentBlock.block.cell.x + offsetX, currentBlock.block.cell.y + offsetY);
-        if (nextCell == null || !IsCellAvailToMove(currentBlock.block.cell, nextCell)) return;
+        if (nextCell == null || !IsCellAvailToMove(currentBlock.block.cell, nextCell, false, checkObtacles)) return;
 
         var g = currentBlock.g + (currentBlock.block.cell.x != nextCell.x && currentBlock.block.cell.y != nextCell.y ? 141f : 100f);
         var h = GetDistance(nextCell, finish);
@@ -379,7 +379,7 @@ public class MapController : ControllerBehaviour {
         return waypoints;
     }
 
-    private List<BlockController> FindPathThread(CellController start, CellController finish) {
+    private List<BlockController> FindPathThread(CellController start, CellController finish, bool checkObtacles = false) {
         var open = new List<PathBlock>();
         var closed = new List<PathBlock>();
 
@@ -399,15 +399,15 @@ public class MapController : ControllerBehaviour {
                 return GetPath(startBlock, currentBlock);
             }
 
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 0);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 0);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, -1);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, 1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 0, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 0, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, -1, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 0, 1, checkObtacles);
 
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, -1);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, -1);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 1);
-            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 1);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, -1, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, -1, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, -1, 1, checkObtacles);
+            PutBlockIntoOpenList(open, closed, currentBlock, finish, 1, 1, checkObtacles);
 
             open.Sort(SortPathByF);
         }
@@ -419,8 +419,8 @@ public class MapController : ControllerBehaviour {
         return Vector3.SqrMagnitude(a.top - b.top);
     }
 
-    public void FindPath(CellController start, CellController finish, Action<List<BlockController>> callback) {
-        Observable.Start(() => FindPathThread(start, finish))
+    public void FindPath(CellController start, CellController finish, Action<List<BlockController>> callback, bool checkObtacles = false) {
+        Observable.Start(() => FindPathThread(start, finish, checkObtacles))
             //.TakeUntilDestroy(g.c)
             .ObserveOnMainThread()
             .Subscribe(callback);
