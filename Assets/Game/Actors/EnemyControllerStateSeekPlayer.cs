@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using UniRx;
+
 
 public class EnemyControllerStateSeekPlayer : StateBehaviour
 {
@@ -9,12 +11,46 @@ public class EnemyControllerStateSeekPlayer : StateBehaviour
         get { return _controller as EnemyController; }
     }
 
-    private int _directionX = 0;
-    private int _directionY = 0;
+    private int _directionX;
+    private int _directionY;
+    
+    private PlayerController _player;
+    private int delayBeforeAttack = 1000;
+    private int delayAfterAttack = 2000;
+    
 
     protected override void OnAwake(params object[] args)
     {
         SetDefaultState(State.SeekPlayer);
+    }
+    
+    private void OnNewPosition(params object[] args) {
+        _player = (PlayerController) cc.getAroundObtacles(true).Find(obtacle=> obtacle.GetType() == typeof(PlayerController));
+        if (_player != null) {
+            //console.log("I FOUND YOU!");
+            cc.StopMovement();
+            Observable.Timer(TimeSpan.FromMilliseconds(delayBeforeAttack))
+                .Subscribe(_ => {
+                    //console.log("Atttack!");
+                    StopMovement();
+                    cc.animator.SetTrigger("Attack");
+                    Observable.Timer(TimeSpan.FromMilliseconds(delayAfterAttack))
+                        .Subscribe(__ => {
+                            _player = null;
+                            //console.log("Continue");
+                            GetRandomDirection();
+                        });
+                });    
+        }
+    }
+
+    private void OnFixedUpdate(params object[] args) {
+        if (_player != null) {
+            
+            transform.rotation = Quaternion.Lerp(transform.rotation,
+                Quaternion.LookRotation(_player.transform.position - transform.position),
+                10f * Time.deltaTime);
+        }
     }
 
     private void GetRandomDirection(params object[] args)
@@ -44,6 +80,12 @@ public class EnemyControllerStateSeekPlayer : StateBehaviour
     {
         //gc.Trigger(0, Channel.Controller.SetState, State.GamePlay);
         ListenTo(cc, Channel.Actor.FinishMove, OnFinishMove);
+        ListenTo(cc, Channel.Actor.NewPosition, OnNewPosition);
+        ListenTo(cc, Channel.Actor.FixedUpdate, OnFixedUpdate);
+
+        ListenTo(cc, Channel.Actor.StartMove, OnStartMove);
+        ListenTo(cc, Channel.Actor.FinishMove, OnFinishMove);
+        
         On(Channel.Actor.MoveToNextDirection, GetRandomDirection);
     }
 
@@ -65,11 +107,24 @@ public class EnemyControllerStateSeekPlayer : StateBehaviour
         }
     }
 
-    protected void OnFinishMove(params object[] args)
-    {
-        MoveToDirection();
+    private void OnStartMove(params object[] args) {
+        OnNewPosition();
+        cc.animator.SetBool("Run", true);
+        cc.animator.speed = cc.speed / cc.animatorFactor;
     }
 
+    private void StopMovement() {
+        cc.animator.SetBool("Run", false);
+        cc.animator.speed = 1;
+    }
+    
+    private void OnFinishMove(params object[] args) {
+        if (!_player) {
+            StopMovement();
+            MoveToDirection();    
+        }
+    }
+    
     protected override void OnEnabled(params object[] args)
     {
         //console.log("playerSeek");

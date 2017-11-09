@@ -83,10 +83,13 @@ public static class Channel {
     public enum Actor {
         StartMove,
         FinishMove,
+        NewPosition,
         BlowBomb,
         SetPlayerBomb,
         
-        MoveToNextDirection
+        MoveToNextDirection,
+        
+        FixedUpdate
     }
 
     public enum Camera {

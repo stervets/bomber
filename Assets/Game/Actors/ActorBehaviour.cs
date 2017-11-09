@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -31,17 +32,21 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
 
     protected override void BeforeControllerAwake() {
         characterController = GetComponent<CharacterController>();
-        On(Channel.Actor.StartMove, OnStartMove);
-        On(Channel.Actor.FinishMove, OnFinishMove);
+        //On(Channel.Actor.StartMove, OnStartMove);
+        //On(Channel.Actor.FinishMove, OnFinishMove);
         PlaceOnCell(g.map.GetCellFromReal(transform.position));
         transform.parent = g.map.gameObject.transform;
+    }
+
+    private void OnEnable() {
+        Trigger(Channel.Actor.NewPosition);
     }
 
     public void moveToCell(CellController targetCell) {
         g.map.FindPath(cell, targetCell, SetWaypoints);
     }
 
-    public void SetWaypoints(List<BlockController> _waypoints) {
+    private void SetWaypoints(List<BlockController> _waypoints) {
         if (_waypoints.Count > 1) {
             waypoints = _waypoints;
 
@@ -68,6 +73,50 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
         return cells;
     }
 
+    public List<ControllerBehaviour> getAroundObtacles(bool includeDiagonal = false) {
+        var obtacles = new List<ControllerBehaviour>();
+        ControllerBehaviour obtacle;
+        if (g.map.IsCellAvailToMove(cell, -1, 0) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x - 1, cell.y)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, 1, 0) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x + 1, cell.y)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, 0, -1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x, cell.y - 1)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, 0, 1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x, cell.y + 1)]) != null)
+            obtacles.Add(obtacle);
+
+        if (!includeDiagonal) return obtacles;
+
+        if (g.map.IsCellAvailToMove(cell, -1, -1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x - 1, cell.y - 1)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, 1, 1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x + 1, cell.y + 1)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, -1, 1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x - 1, cell.y + 1)]) != null)
+            obtacles.Add(obtacle);
+        if (g.map.IsCellAvailToMove(cell, 1, -1) &&
+            (obtacle = g.map.obtacles[g.map.GetCell(cell.x + 1, cell.y - 1)]) != null)
+            obtacles.Add(obtacle);
+        return obtacles;
+    }
+
+    public void StopMovement(bool doNotTriggerFinishMove = false) {
+        _waypointCell = null;
+        if (waypoints != null) {
+            waypoints.Clear();
+        }
+
+        if (!doNotTriggerFinishMove) {
+            Trigger(Channel.Actor.FinishMove);
+        }
+    }
+
     void NextPoint() {
         if (waypoints.Count > 0) {
             waypoint = waypoints[0];
@@ -77,13 +126,11 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
                 if (g.map.obtacles[waypoint.cell] != null &&
                     g.map.obtacles[waypoint.cell] != this) {
                     if (waypoints.Count > 0) {
-                        console.log("Find path");
-                        //TODO: здесь нужно триггерить свое собственное поведение для каждого класса актора
-                        g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints, true);
+                        if (OnMeetObtacle(g.map.obtacles[waypoint.cell], waypoints.Last().cell)) {
+                            g.map.FindPath(cell, waypoints.Last().cell, SetWaypoints, true);
+                        }
                     }
-                    _waypointCell = null;
-                    waypoints.Clear();
-                    Trigger(Channel.Actor.FinishMove);
+                    StopMovement();
                     return;
                 }
 
@@ -92,13 +139,9 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
                         ? cell
                         : null);
                 cell = waypoint.cell;
+                Trigger(Channel.Actor.NewPosition);
             }
-            else {
-                if (waypoints.Count == 0) {
-                    Trigger(Channel.Actor.FinishMove);
-                    return;
-                }
-            }
+
             _waypointCell = waypoint.cell;
             direction = Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up).normalized;
 
@@ -124,29 +167,14 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
             else {
                 characterController.Move(direction * speed * Time.deltaTime);
             }
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 10f * Time.deltaTime);
         }
         characterController.SimpleMove(Vector3.down * gravity * Time.deltaTime);
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 10f * Time.deltaTime);
-        OnFixedUpdate();
+        Trigger(Channel.Actor.FixedUpdate);
     }
 
-    /*
-    public void Fire() {
-        Trigger(Channel.Actor.Fire);
-    }
-    */
 
-    protected virtual void OnFixedUpdate() {
+    protected virtual bool OnMeetObtacle(ControllerBehaviour obj, CellController lastCell) {
+        return true;
     }
-
-    protected virtual void OnStartMove(params object[] args) {
-    }
-
-    protected virtual void OnFinishMove(params object[] args) {
-    }
-
-    /*
-    protected virtual void OnFire(params object[] args) {
-    }
-    */
 }

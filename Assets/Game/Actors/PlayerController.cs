@@ -12,6 +12,9 @@ public class PlayerController : ActorBehaviour {
     protected override void OnAwake(params object[] args) {
         speed = 2.5f;
         ListenTo(g.c, Channel.Actor.SetPlayerBomb, SetPlayerBomb);
+        On(Channel.Actor.StartMove, OnStartMove);
+        On(Channel.Actor.FinishMove, OnFinishMove);
+        
         animator = GetComponent<Animator>();
     }
 
@@ -53,7 +56,7 @@ public class PlayerController : ActorBehaviour {
         */
     }
 
-    protected override void OnStartMove(params object[] args) {
+    private void OnStartMove(params object[] args) {
         var cellController = args[0] as CellController;
         if (cellController != null)
             clickPointer.transform.position = cellController.top + Vector3.down * 0.49f;
@@ -62,7 +65,7 @@ public class PlayerController : ActorBehaviour {
         animator.speed = speed / animatorFactor;
     }
 
-    protected override void OnFinishMove(params object[] args) {
+    private void OnFinishMove(params object[] args) {
         animator.SetBool("Run", false);
         animator.speed = 1;
     }

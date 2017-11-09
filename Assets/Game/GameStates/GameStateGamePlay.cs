@@ -21,14 +21,16 @@ public class GameStateGamePlay : StateBehaviour {
     protected void OnMapLoaded(params object[] args) {
         g.map.CreateActor(g.map.cellItems[CellItem.PlayerRespawn][0], "player", "PlayerController");
         
-        g.map.CreateActor(g.map.GetCell(2, 5), "knight", "EnemyController");
-        g.map.CreateActor(g.map.GetCell(0, 0), "knight", "EnemyController");
+        //g.map.CreateActor(g.map.GetCell(2, 5), "knight", "EnemyController");
+        //g.map.CreateActor(g.map.GetCell(0, 0), "knight", "EnemyController");
         g.map.CreateActor(g.map.GetCell(2, 0), "knight", "EnemyController");
         g.map.CreateActor(g.map.GetCell(4, 1), "knight", "EnemyController");
         g.map.CreateActor(g.map.GetCell(4, 2), "knight", "EnemyController");
         g.map.CreateActor(g.map.GetCell(10, 8), "knight", "EnemyController");
+        
         g.map.CreateActor(g.map.GetCell(5, 6), "knight", "EnemyController");
-        g.map.CreateActor(g.map.GetCell(3, 6), "knight", "EnemyController");
+        
+        //g.map.CreateActor(g.map.GetCell(3, 6), "knight", "EnemyController");
         
     }
 
