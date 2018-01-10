@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 
 public abstract class ActorBehaviour : StateControllerBehaviour {
-    public CellController cell;
+    public CellController cell, realPositionCell, oldRealPositionCell;
     public float speed;
     private const float gravity = 2f;
 
@@ -25,7 +25,7 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
     private Quaternion rotation;
 
     protected void PlaceOnCell(CellController _cell) {
-        cell = _cell;
+        cell = realPositionCell = _cell;
         transform.position = cell.top;
         g.map.Trigger(Channel.Map.SetObtacle, this, cell);
     }
@@ -36,10 +36,25 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
         //On(Channel.Actor.FinishMove, OnFinishMove);
         PlaceOnCell(g.map.GetCellFromReal(transform.position));
         transform.parent = g.map.gameObject.transform;
+        ListenTo(g.map, Channel.Actor.NewPosition, actor => {
+            if ((ActorBehaviour) actor[0] != this) {
+                OnActorNewPosition((ActorBehaviour) actor[0]);
+            }
+        });
     }
 
+    /*
+    public override void OnStart(params object[] args) {
+        ListenTo(g.map, Channel.Actor.NewPosition, actor => {
+            console.log("Catch");
+            OnActorNewPosition((ActorBehaviour) actor[0]);
+        });
+    }
+    */
+
     private void OnEnable() {
-        Trigger(Channel.Actor.NewPosition);
+        //g.map.Trigger(Channel.Actor.NewPosition, this);
+        GetRealPositionCell();
     }
 
     public void moveToCell(CellController targetCell) {
@@ -106,14 +121,9 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
         return obtacles;
     }
 
-    public void StopMovement(bool doNotTriggerFinishMove = false) {
-        _waypointCell = null;
+    public void StopMovement() {
         if (waypoints != null) {
             waypoints.Clear();
-        }
-
-        if (!doNotTriggerFinishMove) {
-            Trigger(Channel.Actor.FinishMove);
         }
     }
 
@@ -139,7 +149,6 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
                         ? cell
                         : null);
                 cell = waypoint.cell;
-                Trigger(Channel.Actor.NewPosition);
             }
 
             _waypointCell = waypoint.cell;
@@ -158,6 +167,15 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
         }
     }
 
+    void GetRealPositionCell() {
+        //console.log("rela pos",  Time.time);
+        realPositionCell = g.map.GetCellFromReal(transform.position);
+        if (oldRealPositionCell != realPositionCell) {
+            g.map.Trigger(Channel.Actor.NewPosition, this);
+            oldRealPositionCell = realPositionCell;
+        }
+    }
+
     private void FixedUpdate() {
         if (_waypointCell != null) {
             //if (GetType() == typeof(EnemyController)) console.log("fixed:", Vector3.Dot(direction, Vector3.ProjectOnPlane(_waypointCell.top - transform.position, Vector3.up)));
@@ -170,9 +188,16 @@ public abstract class ActorBehaviour : StateControllerBehaviour {
             transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 10f * Time.deltaTime);
         }
         characterController.SimpleMove(Vector3.down * gravity * Time.deltaTime);
+        if (Time.frameCount % 20 == 0) {
+            GetRealPositionCell();
+        }
         Trigger(Channel.Actor.FixedUpdate);
     }
 
+
+    protected virtual void OnActorNewPosition(ActorBehaviour actor) {
+        //console.log(actor);
+    }
 
     protected virtual bool OnMeetObtacle(ControllerBehaviour obj, CellController lastCell) {
         return true;

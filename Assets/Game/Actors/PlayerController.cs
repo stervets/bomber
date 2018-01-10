@@ -39,6 +39,8 @@ public class PlayerController : ActorBehaviour {
             targetCell = g.map.GetCellFromCamera(Input.mousePosition);
             if (targetCell != cell) {
                 moveToCell(targetCell);
+//                g.c.Trigger(Channel.Camera.SetTarget, targetCell);
+//                ListenTo(g.c, Channel.Camera.SetTarget, SetTarget);
             }
         }
         if (Input.GetKeyDown(KeyCode.Space) && g.map.obtacles[cell].GetType() != typeof(BombController)) {

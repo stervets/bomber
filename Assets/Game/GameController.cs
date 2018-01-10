@@ -27,7 +27,7 @@ public class GameController : StateControllerBehaviour {
         g.camera = Camera.main;
         g.cameraController = g.camera.GetComponent<CameraStateController>();
 
-        debugText = GameObject.Find("DebugText").GetComponent<Text>();
+//        debugText = GameObject.Find("DebugText").GetComponent<Text>();
     }
 
     void Update() {
@@ -36,7 +36,7 @@ public class GameController : StateControllerBehaviour {
     }
 
     public void write(string str) {
-        debugText.text += str + "\n";
+//        debugText.text += str + "\n";
     }
 
 

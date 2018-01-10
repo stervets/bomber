@@ -12,12 +12,14 @@ public class CameraStateController : StateControllerBehaviour {
     private Vector3 targetPosition;
     public Vector3 shakeFactor = Vector3.zero;
 
-    private const float followSpeed = 5f;
+    private const float followSpeed = 10f;
 
     readonly Vector3 cameraOffset = new Vector3(-0.2f, 7f, -2f);
-
+    readonly Vector3 lookAngle = new Vector3(74f, 5.7f, 0);
+        
     protected override void OnStart(params object[] args) {
         ListenTo(g.c, Channel.Camera.SetTarget, SetTarget);
+        transform.eulerAngles = lookAngle;
     }
 
     protected void SetTarget(params object[] args) {
@@ -30,13 +32,15 @@ public class CameraStateController : StateControllerBehaviour {
     }
 
     void LateUpdate() {
+        
         if (target != null) {
             targetLookPosition = Vector3.Lerp(targetLookPosition, target.transform.position, followSpeed * Time.deltaTime) +
                                  shakeFactor;
             targetPosition = targetLookPosition + cameraOffset;
             transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
-            transform.LookAt(targetLookPosition);
+            //transform.LookAt(targetLookPosition);
         }
+        
     }
 
 }

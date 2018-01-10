@@ -25,7 +25,7 @@ public class CameraStateGameplay : StateBehaviour {
     protected void OnBlow(params object[] args) {
         //LeanTween.moveLocal(gameObject, transform.position, 0.5f).setEase(LeanTweenType.easeShake);
         LeanTween.cancel(tweenId);
-        tweenId = LeanTween.value(LeanTween.tweenEmpty, Shake, 0.1f, 0, 0.3f).setEase(LeanTweenType.easeInQuad).id;
+        tweenId = LeanTween.value(LeanTween.tweenEmpty, Shake, 0.15f, 0, 0.4f).setEase(LeanTweenType.easeInQuad).id;
     }
 
     protected override void OnEnabled(params object[] args) {
